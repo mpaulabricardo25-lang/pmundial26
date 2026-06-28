@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Polla Mundialista 2026</title>
+<style>
+  :root{
+    --ink:#0C1F17; --pitch:#0B4D34; --pitch2:#0A3A28; --grass:#1FA85B;
+    --gold:#F2B705; --goldDeep:#B98A00; --bg:#EDF1EC; --card:#FFFFFF;
+    --line:#D7E0D8; --sub:#5C6E62; --lock:#8A9A8E; --danger:#C0492F;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  #app{min-height:100vh;padding-bottom:78px;}
+  .wrap{max-width:560px;margin:0 auto;}
+  .header{background:repeating-linear-gradient(90deg,var(--pitch) 0,var(--pitch) 28px,var(--pitch2) 28px,var(--pitch2) 56px);color:#fff;padding:16px;}
+  .header-inner{display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .t{font-weight:800;font-size:19px;letter-spacing:-.01em;}
+  .brand .s{font-size:11px;opacity:.85;font-weight:600;letter-spacing:.04em;}
+  .chip{background:rgba(255,255,255,.16);color:#fff;border:none;border-radius:999px;
+    padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer;}
+  .content{padding:14px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+    display:flex;flex-direction:column;gap:12px;}
+  .stack{display:flex;flex-direction:column;gap:12px;}
+  .cardtop{display:flex;align-items:center;justify-content:space-between;}
+  .eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--sub);}
+  .closed{font-size:11px;font-weight:800;color:var(--lock);}
+  .teamrow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .teaminfo{display:flex;align-items:center;gap:10px;min-width:0;}
+  .flag{font-size:26px;line-height:1;}
+  .tname{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .steps{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .stepbtn{width:40px;height:40px;border-radius:10px;border:1.5px solid var(--line);
+    background:#fff;color:var(--pitch);font-size:22px;font-weight:800;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;}
+  .stepbtn:disabled{background:#F1F4F1;color:var(--lock);cursor:default;}
+  .plate{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+    background:var(--ink);color:var(--gold);border-radius:10px;font-weight:800;font-size:22px;
+    font-variant-numeric:tabular-nums;}
+  .plate-res{color:#fff;}
+  .result-line{display:flex;align-items:center;justify-content:space-between;
+    border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--sub);}
+  .result-line b{color:var(--ink);}
+  .pts{font-size:13px;font-weight:800;padding:4px 10px;border-radius:999px;}
+  .pts-gold{background:var(--gold);color:var(--ink);}
+  .pts-ok{background:#E3F3E8;color:var(--pitch);}
+  .pts-low{background:#F1EDE9;color:var(--sub);}
+  .row-between{display:flex;align-items:center;justify-content:space-between;}
+  .mb{margin-bottom:12px;}
+  .savestate{font-size:12px;font-weight:700;color:var(--sub);white-space:nowrap;}
+  .select{width:100%;padding:12px 14px;border-radius:11px;border:1px solid var(--line);
+    font-size:15px;font-weight:700;color:var(--ink);background:var(--card);}
+  .nameinput{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--line);
+    font-size:15px;color:var(--ink);}
+  .tbd{color:var(--sub);font-size:14px;padding:6px 2px;font-style:italic;}
+  .minilabel{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--sub);}
+  .note{background:#FFF7E0;border:1px solid #F2D98A;color:#7A5B00;border-radius:10px;
+    padding:10px 12px;font-size:13px;line-height:1.5;}
+  h2.title{font-size:20px;font-weight:800;margin:0 0 12px;}
+  .muted{color:var(--sub);font-size:13px;}
+  .btn{padding:0 18px;border-radius:11px;border:none;background:var(--pitch);color:#fff;
+    font-weight:800;font-size:15px;cursor:pointer;height:46px;}
+  .input{flex:1;padding:12px 14px;border-radius:11px;border:1px solid var(--line);font-size:16px;
+    outline:none;color:var(--ink);height:46px;}
+  .gate-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+  .gate-list button{text-align:left;padding:14px 16px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);font-weight:700;font-size:16px;cursor:pointer;}
+  .field{display:flex;gap:8px;}
+  .rank-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;gap:10px;}
+  .rank-row.leader{background:var(--gold);border-color:var(--gold);}
+  .rank-left{display:flex;align-items:center;gap:12px;min-width:0;}
+  .rank-pos{font-weight:800;font-size:16px;width:24px;color:var(--sub);}
+  .rank-name{font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rank-sub{font-size:12px;color:var(--sub);}
+  .rank-pts{font-weight:800;font-size:22px;font-variant-numeric:tabular-nums;}
+  .rulebox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;
+    display:flex;flex-direction:column;gap:12px;}
+  .rulerow{display:flex;align-items:flex-start;gap:12px;}
+  .rulepts{min-width:40px;height:40px;border-radius:10px;background:var(--ink);color:var(--gold);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;}
+  .rulepts.big{background:var(--gold);color:var(--ink);}
+  .rulelabel{font-weight:800;font-size:15px;}
+  .ruledesc{color:var(--sub);font-size:13px;line-height:1.45;}
+  .nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+    display:flex;max-width:560px;margin:0 auto;}
+  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:9px 0 calc(9px + env(safe-area-inset-bottom));background:none;border:none;cursor:pointer;}
+  .navbtn .ic{font-size:20px;opacity:.55;}
+  .navbtn .lb{font-size:11px;font-weight:600;color:var(--sub);}
+  .navbtn.on .ic{opacity:1;}
+  .navbtn.on .lb{font-weight:800;color:var(--pitch);}
+  .center{min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;
+    color:var(--sub);font-weight:700;padding:20px;}
+  .setup{padding:18px;line-height:1.55;}
+  .setup code{background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:13px;}
+  .gate-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:linear-gradient(160deg,#EAF3EC,#D6E7DB);}
+  .gate-card{width:100%;max-width:380px;background:#fff;border-radius:22px;padding:32px 26px;
+    box-shadow:0 18px 50px rgba(11,77,52,.16);text-align:center;}
+  .gate-ball{font-size:46px;line-height:1;}
+  .gate-title{font-size:24px;font-weight:800;color:var(--pitch);margin:10px 0 6px;}
+  .gate-sub{color:var(--sub);font-size:14px;margin:0 0 22px;line-height:1.45;}
+  .gate-label{display:block;text-align:left;font-weight:800;font-size:13px;color:var(--ink);margin:0 0 6px;}
+  .gate-select,.gate-input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);
+    font-size:16px;color:var(--ink);background:#fff;outline:none;margin-bottom:16px;}
+  .gate-btn{width:100%;padding:14px;border:none;border-radius:12px;color:#fff;font-weight:800;font-size:16px;
+    cursor:pointer;background:linear-gradient(90deg,#22B065,#0B4D34);margin-top:2px;}
+  .gate-admin{display:inline-block;margin-top:16px;color:var(--pitch);font-weight:800;font-size:14px;
+    text-decoration:underline;cursor:pointer;}
+  .gate-err{color:var(--danger);font-size:13px;margin:-6px 0 14px;text-align:left;}
+</style>
+</head>
+<body>
+<div id="app"><div class="center">Cargando la polla… ⚽</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, set, onValue }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, signInAnonymously }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* ===== 1) Tu configuración de Firebase ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAKnNtnBBQcidsDVZI9QPultje3cTzcbRA",
+  authDomain: "polla-mundialista-c51b8.firebaseapp.com",
+  projectId: "polla-mundialista-c51b8",
+  storageBucket: "polla-mundialista-c51b8.firebasestorage.app",
+  messagingSenderId: "336172916918",
+  appId: "1:336172916918:web:3b3c2d80499e6e3d800617",
+  measurementId: "G-5H6QPQLLVL",
+  databaseURL: "https://polla-mundialista-c51b8-default-rtdb.firebaseio.com"
+};
+
+/* ===== datos del torneo ===== */
+const GROUPS = {
+  A:[["México","🇲🇽"],["Sudáfrica","🇿🇦"],["Corea del Sur","🇰🇷"],["Rep. Checa","🇨🇿"]],
+  B:[["Canadá","🇨🇦"],["Suiza","🇨🇭"],["Catar","🇶🇦"],["Bosnia","🇧🇦"]],
+  C:[["Brasil","🇧🇷"],["Marruecos","🇲🇦"],["Haití","🇭🇹"],["Escocia","🏴󠁧󠁢󠁳󠁣󠁴󠁿"]],
+  D:[["USA","🇺🇸"],["Paraguay","🇵🇾"],["Australia","🇦🇺"],["Turquía","🇹🇷"]],
+  E:[["Alemania","🇩🇪"],["Curazao","🇨🇼"],["Costa de Marfil","🇨🇮"],["Ecuador","🇪🇨"]],
+  F:[["Países Bajos","🇳🇱"],["Japón","🇯🇵"],["Suecia","🇸🇪"],["Túnez","🇹🇳"]],
+  G:[["Bélgica","🇧🇪"],["Egipto","🇪🇬"],["Irán","🇮🇷"],["Nueva Zelanda","🇳🇿"]],
+  H:[["España","🇪🇸"],["Cabo Verde","🇨🇻"],["Arabia Saudí","🇸🇦"],["Uruguay","🇺🇾"]],
+  I:[["Francia","🇫🇷"],["Senegal","🇸🇳"],["Irak","🇮🇶"],["Noruega","🇳🇴"]],
+  J:[["Argentina","🇦🇷"],["Argelia","🇩🇿"],["Austria","🇦🇹"],["Jordania","🇯🇴"]],
+  K:[["Portugal","🇵🇹"],["RD Congo","🇨🇩"],["Uzbekistán","🇺🇿"],["Colombia","🇨🇴"]],
+  L:[["Inglaterra","🏴󠁧󠁢󠁥󠁮󠁧󠁿"],["Croacia","🇭🇷"],["Ghana","🇬🇭"],["Panamá","🇵🇦"]],
+};
+const PAIRS = { 2:[[0,2],[1,3]], 3:[[0,3],[1,2]] };
+const PHASES = ["J2","J3","R32","R16","QF","SF","TP","FIN"];
+const PHASE_LABEL = {J2:"Jornada 2",J3:"Jornada 3",R32:"Dieciseisavos",R16:"Octavos",
+  QF:"Cuartos de final",SF:"Semifinal",TP:"Tercer puesto",FIN:"Final"};
+
+/* lookup nombre -> [nombre,bandera] */
+const TEAM={}; Object.values(GROUPS).forEach(arr=>arr.forEach(t=>{TEAM[t[0]]=t;}));
+/* helper de fecha local: D(día, hora, min) en junio 2026 */
+const D=(d,h,mi)=>new Date(2026,5,d,h,mi).getTime();
+/* Jornada 3: partidos oficiales (local, visitante, fecha/hora) — orden = tarjeta */
+const J3 = {
+  A:[["Rep. Checa","México",D(24,20,0)],["Sudáfrica","Corea del Sur",D(24,20,0)]],
+  B:[["Suiza","Canadá",D(24,14,0)],["Bosnia","Catar",D(24,14,0)]],
+  C:[["Escocia","Brasil",D(24,17,0)],["Marruecos","Haití",D(24,17,0)]],
+  D:[["Turquía","USA",D(25,21,0)],["Paraguay","Australia",D(25,21,0)]],
+  E:[["Ecuador","Alemania",D(25,15,0)],["Curazao","Costa de Marfil",D(25,15,0)]],
+  F:[["Túnez","Países Bajos",D(25,18,0)],["Japón","Suecia",D(25,18,0)]],
+  G:[["Nueva Zelanda","Bélgica",D(26,22,0)],["Egipto","Irán",D(26,22,0)]],
+  H:[["Uruguay","España",D(26,19,0)],["Cabo Verde","Arabia Saudí",D(26,19,0)]],
+  I:[["Noruega","Francia",D(26,14,0)],["Senegal","Irak",D(26,14,0)]],
+  J:[["Jordania","Argentina",D(27,21,0)],["Argelia","Austria",D(27,21,0)]],
+  K:[["Colombia","Portugal",D(27,18,30)],["RD Congo","Uzbekistán",D(27,18,30)]],
+  L:[["Panamá","Inglaterra",D(27,16,0)],["Croacia","Ghana",D(27,16,0)]],
+};
+
+/* Jornada 1: resultados reales (no se pronostican, solo sirven para calcular tablas) */
+const J1_RESULTS = {
+  A:[{h:2,a:0},{h:2,a:1}], // México-Sudáfrica, Corea-Chequia
+  B:[{h:1,a:1},{h:1,a:1}], // Canadá-Bosnia, Catar-Suiza
+  C:[{h:1,a:1},{h:0,a:1}], // Brasil-Marruecos, Haití-Escocia
+  D:[{h:4,a:1},{h:2,a:0}], // USA-Paraguay, Australia-Turquía
+  E:[{h:7,a:1},{h:1,a:0}], // Alemania-Curazao, CdM-Ecuador
+  F:[{h:2,a:2},{h:5,a:1}], // PaísesBajos-Japón, Suecia-Túnez
+  G:[{h:1,a:1},{h:2,a:2}], // Bélgica-Egipto, Irán-NuevaZelanda
+  H:[{h:0,a:0},{h:1,a:1}], // España-CaboVerde, ArabiaSaudí-Uruguay
+  I:[{h:3,a:1},{h:1,a:4}], // Francia-Senegal, Irak-Noruega
+  J:[{h:3,a:0},{h:3,a:1}], // Argentina-Argelia, Austria-Jordania
+  K:[{h:1,a:1},{h:1,a:3}], // Portugal-RDCongo, Uzbekistán-Colombia
+  L:[{h:4,a:2},{h:1,a:0}], // Inglaterra-Croacia, Ghana-Panamá
+};
+/* Pares J1: mismos equipos que J2 pero cruzados al revés */
+const PAIRS1 = [[0,1],[2,3]]; // [home_idx, away_idx] en GROUPS
+
+const MATCHES = [];
+const DEFAULT_SCHEDULE = {};
+/* Fechas J2 por grupo (orden real del torneo, jun 2026) */
+const J2_DATE = {
+  A:[D(18,20,0),D(18,20,0)], B:[D(18,20,0),D(18,14,0)],
+  C:[D(19,17,0),D(19,17,0)], D:[D(19,20,0),D(19,14,0)],
+  E:[D(20,18,0),D(20,15,0)], F:[D(20,18,0),D(20,15,0)],
+  G:[D(21,22,0),D(21,18,0)], H:[D(21,22,0),D(21,15,0)],
+  I:[D(22,20,0),D(22,17,0)], J:[D(22,20,0),D(22,14,0)],
+  K:[D(23,20,0),D(23,17,0)], L:[D(23,20,0),D(23,14,0)],
+};
+/* Jornada 2: NO TOCAR — se genera automáticamente (ya tiene resultados) */
+Object.keys(GROUPS).forEach(g=>{
+  PAIRS[2].forEach(([hi,ai],idx)=>{
+    const id=`g${g}-j2-m${idx}`;
+    MATCHES.push({id,phase:"J2",kind:"group",group:g,
+      home:GROUPS[g][hi],away:GROUPS[g][ai]});
+    if(J2_DATE[g]&&J2_DATE[g][idx]) DEFAULT_SCHEDULE[id]=J2_DATE[g][idx];
+  });
+});
+/* Jornada 3: fixtures oficiales + fecha/hora por defecto */
+Object.keys(J3).forEach(g=>{
+  J3[g].forEach(([hn,an,ts],idx)=>{
+    const id=`g${g}-j3-m${idx}`;
+    MATCHES.push({id,phase:"J3",kind:"group",group:g,home:TEAM[hn],away:TEAM[an]});
+    if(ts) DEFAULT_SCHEDULE[id]=ts;
+  });
+});
+/* R32: fechas y equipos oficiales */
+const R32 = [
+  ["Sudáfrica","Canadá",D(29,14,0)],
+  ["Brasil","Japón",D(29,12,0)],
+  ["Alemania","Paraguay",D(29,15,30)],
+  ["Países Bajos","Marruecos",D(29,20,0)],
+  ["Costa de Marfil","Noruega",D(30,12,0)],
+  ["Francia","Suecia",D(30,16,0)],
+  ["México","Ecuador",D(30,20,0)],
+  ["Inglaterra","RD Congo",D(1,11,0)],
+  ["Bélgica","Senegal",D(1,15,0)],
+  ["USA","Bosnia",D(1,19,0)],
+  ["España","Austria",D(2,14,0)],
+  ["Portugal","Croacia",D(2,18,0)],
+  ["Suiza","Argelia",D(2,22,0)],
+  ["Australia","Egipto",D(3,13,0)],
+  ["Argentina","Cabo Verde",D(3,17,0)],
+  ["Colombia","Ghana",D(3,20,30)],
+];
+R32.forEach(([h,a,ts],i)=>{
+  const id=`ko-R32-${i+1}`;
+  DEFAULT_SCHEDULE[id]=ts;
+});
+const R32_BRACKET={};
+R32.forEach(([h,a],i)=>{ R32_BRACKET[`ko-R32-${i+1}`]={h,a}; });
+[["R32",16],["R16",8],["QF",4],["SF",2],["TP",1],["FIN",1]].forEach(([key,n])=>{
+  for(let i=1;i<=n;i++) MATCHES.push({id:`ko-${key}-${i}`,phase:key,kind:"ko",num:i});
+});
+const MATCH_BY_ID={}; MATCHES.forEach(m=>{MATCH_BY_ID[m.id]=m;});
+
+function scoreDetail(pick,res,phase){
+  if(!pick||pick.h==null||pick.a==null) return null;
+  if(!res||res.h==null||res.a==null) return null;
+  const ph=pick.h,pa=pick.a,rh=res.h,ra=res.a;
+  const exact=(ph===rh&&pa===ra), reversed=(ph===ra&&pa===rh&&ph!==pa);
+  const ps=Math.sign(ph-pa),rs=Math.sign(rh-ra), same=ps===rs;
+  const isGroup=(phase==="J2"||phase==="J3"), isFinal=(phase==="FIN");
+  if(exact) return {pts:isFinal?10:7,label:"Exacto"};
+  if(reversed) return {pts:isFinal?8:5,label:"Invertido"};
+  if(same){
+    if(isGroup) return rs===0?{pts:3,label:"Empate"}:{pts:4,label:"Ganador"};
+    return {pts:isFinal?6:3,label:"Ganador"};
+  }
+  return {pts:1,label:"Falló"};
+}
+function scoreFor(pick,res,phase){const d=scoreDetail(pick,res,phase);return d?d.pts:null;}
+function slugify(name){
+  const b=name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  return b||"jugador";
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+async function sha(s){
+  s=String(s);
+  try{
+    const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }catch(e){
+    let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0;} return "h"+h;
+  }
+}
+function rand4(){return String(Math.floor(1000+Math.random()*9000));}
+function phaseDeadline(ph){return (state.config&&state.config.deadlines&&state.config.deadlines[ph])||null;}
+function phaseClosed(ph){const d=phaseDeadline(ph);return !!d && Date.now()>=d;}
+function activeGrant(uid){
+  const g=(state.config&&state.config.grants&&state.config.grants[uid])||null;
+  return (g&&g.until&&Date.now()<g.until)?g:null;
+}
+function userUnlocked(ph){
+  const u=state.user; if(!u||u.org) return false;
+  const g=activeGrant(u.id); return !!(g&&g.phase===ph);
+}
+
+function toLocalInput(ts){const d=new Date(ts),p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;}
+function fmtDateTime(ts){const d=new Date(ts),dias=["dom","lun","mar","mié","jue","vie","sáb"],mes=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"],p=n=>String(n).padStart(2,"0");return `${dias[d.getDay()]} ${d.getDate()} ${mes[d.getMonth()]} · ${p(d.getHours())}:${p(d.getMinutes())}`;}
+const LABEL_LONG={Exacto:"Marcador exacto",Invertido:"Marcador invertido",Ganador:"Ganador acertado",Empate:"Empate acertado","Falló":"Falló"};
+
+/* ===== estado ===== */
+const state = {
+  configured:true, error:null,
+  participants:[], results:{}, config:null, bracket:{...R32_BRACKET},
+  user:null, myPicks:{}, allPicks:{}, rankLoading:false,
+  tab:"picks", phase:"J2", saveState:"idle",
+  pendingId:null, gateOrg:false, loginError:"",
+  lastAdded:null, ccMsg:"", ccError:"", gateSel:"", schedule:{}, rankOpen:null
+};
+const el = id => document.getElementById(id);
+function isLocked(mid){const r=state.results[mid];return r&&r.h!=null&&r.a!=null;}
+function koName(id,side){const b=state.bracket[id];const v=b&&b[side];return (v&&String(v).trim())?String(v).trim():null;}
+
+/* ===== Firebase ===== */
+let db;
+const rParticipants=()=>ref(db,"participants");
+const rResults=()=>ref(db,"results");
+const rConfig=()=>ref(db,"config");
+const rBracket=()=>ref(db,"bracket");
+const rPick=id=>ref(db,"picks/"+id);
+const rPicks=()=>ref(db,"picks");
+const rSchedule=()=>ref(db,"schedule");
+
+function start(){
+  if(!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("PEGA")){
+    state.configured=false; render(); return;
+  }
+  try{
+    const app=initializeApp(firebaseConfig);
+    db=getDatabase(app);
+    const auth=getAuth(app);
+    signInAnonymously(auth)
+      .catch(e=>console.warn("Auth anónima:", e.code||e.message))
+      .finally(()=>subscribe());
+  }catch(e){ state.error=e.message; render(); }
+}
+function subscribe(){
+  onValue(rParticipants(),s=>{
+    const v=s.val(); const list=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v):[]);
+    if(JSON.stringify(list)!==JSON.stringify(state.participants)){
+      state.participants=list; maybeBootUser(); render();
+    }
+  },err=>{state.error=err.message;render();});
+  onValue(rResults(),s=>{const map=s.val()||{}; if(JSON.stringify(map)!==JSON.stringify(state.results)){state.results=map;render();}});
+  onValue(rConfig(),s=>{const c=s.val()||null; if(JSON.stringify(c)!==JSON.stringify(state.config)){state.config=c;render();}});
+  onValue(rBracket(),s=>{const b={...R32_BRACKET,...(s.val()||{})}; if(JSON.stringify(b)!==JSON.stringify(state.bracket)){state.bracket=b;render();}});
+  onValue(rSchedule(),s=>{const sc=s.val()||{}; if(JSON.stringify(sc)!==JSON.stringify(state.schedule)){state.schedule=sc;render();}});
+  render();
+}
+function maybeBootUser(){
+  if(state.user) return;
+  const saved=localStorage.getItem("pollaUserId");
+  if(saved){const p=state.participants.find(x=>x.id===saved); if(p){state.user=p; loadMyPicks(p.id);}}
+}
+async function loadMyPicks(id){
+  try{const snap=await get(rPick(id)); if(snap.exists()) state.myPicks=snap.val()||{};}catch(e){}
+  render();
+}
+
+/* ===== acciones ===== */
+async function enter(id){
+  const p=state.participants.find(x=>x.id===id); if(!p) return;
+  let picks={};
+  try{const snap=await get(rPick(id)); if(snap.exists()) picks=snap.val()||{};}catch(e){}
+  state.user=p; state.myPicks=picks; state.tab="picks"; state.pendingId=null; state.loginError="";
+  localStorage.setItem("pollaUserId",id); render();
+}
+function switchUser(){state.user=null;state.pendingId=null;state.gateOrg=false;state.loginError="";state.ccMsg="";state.ccError="";localStorage.removeItem("pollaUserId");render();}
+
+function backToList(){state.gateOrg=false; state.loginError=""; render();}
+async function gateLogin(){
+  const id=el("gName")?.value||""; state.gateSel=id;
+  const code=(el("gCode")?.value||"").trim();
+  if(!id){ state.loginError="Elige tu nombre."; render(); return; }
+  const p=state.participants.find(x=>x.id===id); if(!p) return;
+  const ok = p.codeHash ? (await sha(code))===p.codeHash : (p.code!=null && code===String(p.code));
+  if(ok){ enter(p.id); } else { state.loginError="Código incorrecto."; render(); }
+}
+function showOrgGate(){state.gateOrg=true; state.pendingId=null; state.loginError=""; render();}
+async function orgLogin(){
+  const v=(el("pinInput")?.value||"").trim();
+  const has=!!(state.config&&state.config.pin);
+  if(!has){
+    if(v.length<3){state.loginError="El PIN debe tener al menos 3 caracteres."; render(); return;}
+    try{const cfgPin={...(state.config||{}),pin:v}; await set(rConfig(),cfgPin); state.config=cfgPin;}catch(e){alert("No se pudo guardar el PIN.");return;}
+  } else if(v!==state.config.pin){
+    state.loginError="PIN incorrecto."; render(); return;
+  }
+  state.user={id:"__org__",org:true,name:"Organizador"}; state.tab="players"; state.gateOrg=false; state.loginError=""; render();
+}
+
+async function addPlayerAdmin(){
+  const name=(el("npName")?.value||"").trim();
+  let code=(el("npCode")?.value||"").trim();
+  if(!name){alert("Escribe el nombre del jugador.");return;}
+  if(!code) code=rand4();
+  let id=slugify(name),n=1; const ids=new Set(state.participants.map(x=>x.id));
+  while(ids.has(id)) id=`${slugify(name)}-${++n}`;
+  const codeHash=await sha(code);
+  const next=[...state.participants,{id,name,codeHash,personalized:false}];
+  state.participants=next;
+  try{await set(rParticipants(),next);}catch(e){alert("No se pudo guardar.");return;}
+  state.lastAdded={name,code,reset:false}; render();
+}
+async function resetCode(id){
+  const p=state.participants.find(x=>x.id===id); if(!p) return;
+  if(!confirm("¿Restablecer el código de "+p.name+"? Se generará uno nuevo.")) return;
+  const code=rand4(); const codeHash=await sha(code);
+  const next=state.participants.map(x=> x.id===id?{...x,codeHash,personalized:false,code:null}:x);
+  state.participants=next;
+  try{await set(rParticipants(),next);}catch(e){}
+  state.lastAdded={name:p.name,code,reset:true}; render();
+}
+async function deletePlayer(id){
+  if(!confirm("¿Borrar este jugador?")) return;
+  const next=state.participants.filter(x=>x.id!==id); state.participants=next;
+  try{await set(rParticipants(),next);}catch(e){}
+  render();
+}
+async function changeCode(){
+  state.ccMsg=""; state.ccError="";
+  const a=(el("cc1")?.value||"").trim(), b=(el("cc2")?.value||"").trim();
+  if(a.length<3){state.ccError="El código debe tener al menos 3 caracteres."; render(); return;}
+  if(a!==b){state.ccError="Los códigos no coinciden."; render(); return;}
+  const codeHash=await sha(a);
+  const next=state.participants.map(x=> x.id===state.user.id?{...x,codeHash,personalized:true,code:null}:x);
+  state.participants=next; state.user={...state.user,codeHash,personalized:true};
+  try{await set(rParticipants(),next);}catch(e){state.ccError="No se pudo guardar.";render();return;}
+  state.tab="picks"; render();
+}
+
+let saveTimer=null;
+function setSaveState(s){
+  state.saveState=s; const e=el("saveState"); if(!e) return;
+  e.textContent = s==="saving"?"Guardando…":s==="saved"?"Guardado ✓":s==="error"?"Error al guardar":"";
+  e.style.color = s==="saved"?"var(--grass)":s==="error"?"var(--danger)":"var(--sub)";
+}
+function bumpPick(mid,side,delta){
+  const _m=MATCH_BY_ID[mid];
+  if(isLocked(mid) || (_m && phaseClosed(_m.phase) && !userUnlocked(_m.phase))) return;
+  const cur=state.myPicks[mid]?state.myPicks[mid][side]:null;
+  const nv=delta>0?(cur==null?1:Math.min(30,cur+1)):(cur==null?0:Math.max(0,cur-1));
+  const cell=Object.assign({h:null,a:null},state.myPicks[mid]||{}); cell[side]=nv;
+  if(cell.h==null)cell.h=0; if(cell.a==null)cell.a=0;
+  state.myPicks[mid]=cell;
+  const ph=el(`plate-${mid}-h`),pa=el(`plate-${mid}-a`);
+  if(ph)ph.textContent=cell.h; if(pa)pa.textContent=cell.a;
+  setSaveState("saving");
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{await set(rPick(state.user.id),state.myPicks); setSaveState("saved"); setTimeout(()=>setSaveState("idle"),1500);}
+    catch(e){setSaveState("error");}
+  },500);
+}
+let resTimer=null;
+function bumpResult(mid,side,delta){
+  const cur=state.results[mid]?state.results[mid][side]:null;
+  const nv=delta>0?(cur==null?1:Math.min(30,cur+1)):(cur==null?0:Math.max(0,cur-1));
+  const cell=Object.assign({h:null,a:null},state.results[mid]||{}); cell[side]=nv;
+  if(cell.h==null)cell.h=0; if(cell.a==null)cell.a=0;
+  state.results[mid]=cell;
+  const ph=el(`rplate-${mid}-h`),pa=el(`rplate-${mid}-a`);
+  if(ph)ph.textContent=cell.h; if(pa)pa.textContent=cell.a;
+  clearTimeout(resTimer);
+  resTimer=setTimeout(async()=>{try{await set(rResults(),state.results);}catch(e){}},400);
+}
+async function clearResult(mid){
+  if(!confirm("¿Borrar el resultado de este partido? Volverá a quedar en blanco.")) return;
+  const next={...state.results}; delete next[mid];
+  state.results=next;
+  try{await set(rResults(),next);}catch(e){}
+  render();
+}
+let brTimer=null;
+function setBracket(mid,side,value){
+  const cell=Object.assign({h:"",a:""},state.bracket[mid]||{}); cell[side]=value;
+  state.bracket[mid]=cell;
+  clearTimeout(brTimer);
+  brTimer=setTimeout(async()=>{try{await set(rBracket(),state.bracket);}catch(e){}},500);
+}
+let schTimer=null;
+function setSchedule(mid,value){
+  const next={...state.schedule};
+  if(!value){ delete next[mid]; } else { next[mid]=new Date(value).getTime(); }
+  state.schedule=next;
+  clearTimeout(schTimer);
+  schTimer=setTimeout(async()=>{try{await set(rSchedule(),state.schedule);}catch(e){}},500);
+}
+function openRank(id){ state.rankOpen = state.rankOpen===id?null:id; render(); }
+function setTab(t){state.tab=t; state.ccMsg=""; state.ccError=""; state.rankOpen=null; if(t==="ranking") refreshRanking(); else render();}
+function setPhase(p){state.phase=p; render();}
+async function refreshRanking(){
+  state.rankLoading=true; render();
+  try{const snap=await get(rPicks()); state.allPicks=snap.val()||{};}catch(e){}
+  state.rankLoading=false; render();
+}
+async function setDeadline(){
+  const v=el("dlInput")?.value; if(!v){alert("Elige fecha y hora.");return;}
+  const ts=new Date(v).getTime();
+  const dls={...((state.config&&state.config.deadlines)||{}), [state.phase]:ts};
+  const cfg={...(state.config||{}), deadlines:dls};
+  state.config=cfg; try{await set(rConfig(),cfg);}catch(e){alert("No se pudo guardar.");return;}
+  render();
+}
+async function clearDeadline(){
+  const dls={...((state.config&&state.config.deadlines)||{})}; delete dls[state.phase];
+  const cfg={...(state.config||{}), deadlines:dls};
+  state.config=cfg; try{await set(rConfig(),cfg);}catch(e){}
+  render();
+}
+
+
+
+function sortByTime(ms){return [...ms].sort((a,b)=>{const sa=state.schedule[a.id]||DEFAULT_SCHEDULE[a.id]||Infinity;const sb=state.schedule[b.id]||DEFAULT_SCHEDULE[b.id]||Infinity;return sa-sb;});}
+async function grantEdit(){
+  const pid=el("grPlayer")?.value, mins=parseInt(el("grMins")?.value||"15",10), ph=el("grPhase")?.value;
+  if(!pid||!ph){alert("Elige jugador y jornada.");return;}
+  const until=Date.now()+mins*60000;
+  const grants={...((state.config&&state.config.grants)||{}), [pid]:{phase:ph,until}};
+  const cfg={...(state.config||{}), grants};
+  state.config=cfg; try{await set(rConfig(),cfg);}catch(e){alert("No se pudo guardar.");return;}
+  render();
+}
+async function revokeGrant(pid){
+  const grants={...((state.config&&state.config.grants)||{})}; delete grants[pid];
+  const cfg={...(state.config||{}), grants};
+  state.config=cfg; try{await set(rConfig(),cfg);}catch(e){}
+  render();
+}
+/* ===== vistas ===== */
+function standings(){
+  return state.participants.map(p=>{
+    const picks=state.allPicks[p.id]||{}; let pts=0,ex=0;
+    for(const m of MATCHES){
+      const r=state.results[m.id]; if(!r||r.h==null||r.a==null) continue;
+      const det=scoreDetail(picks[m.id],r,m.phase); if(det){pts+=det.pts; if(det.label==="Exacto")ex++;}
+    }
+    // Sumar puntos de tabla de grupo (nuevo sistema: 7/4/3/1)
+    const closedGroups=new Set();
+    for(const m of MATCHES){
+      if(m.kind!=="group"||closedGroups.has(m.group)) continue;
+      const grpMs=MATCHES.filter(x=>x.kind==="group"&&x.group===m.group);
+      const grpDone=grpMs.every(x=>{const r=state.results[x.id];return r&&r.h!=null&&r.a!=null;});
+      if(!grpDone) continue;
+      closedGroups.add(m.group);
+      const real=calcGroupTable(grpMs,id=>{const r=state.results[id];return(r&&r.h!=null)?r:null;});
+      const pred=calcGroupTable(grpMs,id=>{const pp=picks[id];return(pp&&pp.h!=null)?pp:null;});
+      pts+=tableScore(pred,real);
+    }
+    return {...p,pts,ex};
+  }).sort((a,b)=>b.pts-a.pts||b.ex-a.ex);
+}
+function teamLine(mid,side,label,flag,val,disabled,mode){
+  const fn=mode==="result"?"bumpResult":"bumpPick";
+  const pid=(mode==="result"?"rplate-":"plate-")+mid+"-"+side;
+  const tone=(mode==="result"||(disabled&&val!=null))?"plate-res":"";
+  return `<div class="teamrow">
+    <div class="teaminfo">${flag?`<span class="flag">${flag}</span>`:""}<span class="tname">${esc(label)}</span></div>
+    <div class="steps">
+      <button class="stepbtn" ${disabled?"disabled":""} onclick="bumpFn('${fn}','${mid}','${side}',-1)">−</button>
+      <div class="plate ${tone}" id="${pid}">${val==null?"·":val}</div>
+      <button class="stepbtn" ${disabled?"disabled":""} onclick="bumpFn('${fn}','${mid}','${side}',1)">+</button>
+    </div></div>`;
+}
+function matchCard(m,mode){
+  const res=state.results[m.id];
+  const locked=res&&res.h!=null&&res.a!=null;
+  const editing=mode==="result";
+  const closedByTime=!editing&&phaseClosed(m.phase)&&!userUnlocked(m.phase);
+  const disabled=editing?false:(!!locked||closedByTime);
+  const cell=editing?(res||{h:null,a:null}):(state.myPicks[m.id]||{h:null,a:null});
+  const det=(!editing&&locked)?scoreDetail(state.myPicks[m.id],res,m.phase):null;
+
+  let hLabel,aLabel,hFlag="",aFlag="",eyebrow,defined=true;
+  if(m.kind==="group"){
+    hLabel=m.home[0]; aLabel=m.away[0]; hFlag=m.home[1]; aFlag=m.away[1];
+    eyebrow=`GRUPO ${m.group} · ${PHASE_LABEL[m.phase].toUpperCase()}`;
+  }else{
+    const hn=koName(m.id,"h"), an=koName(m.id,"a");
+    hLabel=hn||"Por definir"; aLabel=an||"Por definir";
+    eyebrow=`${PHASE_LABEL[m.phase].toUpperCase()} · PARTIDO ${m.num}`;
+    defined=!!(hn&&an);
+  }
+
+  let nameEditor="";
+  if(editing && m.kind==="ko"){
+    const b=state.bracket[m.id]||{};
+    nameEditor=`<div class="minilabel">EQUIPOS (escríbelos cuando se definan)</div>
+      <input class="nameinput" value="${esc(b.h||"")}" placeholder="Equipo 1" onchange="setBracket('${m.id}','h',this.value)">
+      <input class="nameinput" value="${esc(b.a||"")}" placeholder="Equipo 2" onchange="setBracket('${m.id}','a',this.value)">
+      <div style="height:2px"></div>`;
+  }
+
+  let bodyParts;
+  if(!editing && m.kind==="ko" && !defined){
+    bodyParts=`<div class="tbd">Partido por definir — podrás pronosticar cuando el organizador cargue los equipos.</div>`;
+  }else{
+    bodyParts=`${teamLine(m.id,"h",hLabel,hFlag,cell.h,disabled,mode)}
+      ${teamLine(m.id,"a",aLabel,aFlag,cell.a,disabled,mode)}`;
+  }
+
+  let foot="";
+  if(!editing&&locked){
+    const cls=det&&det.label==="Exacto"?"pts-gold":(det&&det.pts>=3?"pts-ok":"pts-low");
+    foot=`<div class="result-line"><span>Final: <b>${res.h}–${res.a}</b></span>
+      <span class="pts ${cls}">${det?("+"+det.pts+" · "+LABEL_LONG[det.label]):"Sin pronóstico"}</span></div>`;
+  }
+  let resFoot="";
+  if(editing && res && (res.h!=null||res.a!=null)){
+    resFoot=`<div style="border-top:1px dashed var(--line);padding-top:10px;text-align:right">
+      <button class="btn" style="height:36px;padding:0 12px;font-size:13px;background:var(--card);color:var(--danger);border:1px solid var(--line)" onclick="clearResult('${m.id}')">Limpiar resultado</button></div>`;
+  }
+  const sch=state.schedule[m.id]||DEFAULT_SCHEDULE[m.id]||null;
+  const schLine=(!editing&&sch)?`<div style="font-size:12px;color:var(--sub);font-weight:600;margin:-2px 0 8px">📅 ${fmtDateTime(sch)}</div>`:"";
+  let schEditor="";
+  if(editing){
+    schEditor=`<div class="minilabel">FECHA Y HORA DEL PARTIDO</div>
+      <input class="nameinput" type="datetime-local" id="sch-${m.id}" ${sch?`value="${toLocalInput(sch)}"`:""} onchange="setSchedule('${m.id}',this.value)">
+      <div style="height:4px"></div>`;
+  }
+  return `<div class="card"><div class="cardtop">
+      <span class="eyebrow">${eyebrow}</span>
+      ${(!editing&&(locked||closedByTime))?'<span class="closed">CERRADO</span>':""}</div>
+    ${schLine}${schEditor}${nameEditor}${bodyParts}${foot}${resFoot}</div>`;
+}
+function phaseSelect(){
+  return `<select class="select" onchange="setPhase(this.value)">
+    ${PHASES.map(p=>`<option value="${p}" ${state.phase===p?"selected":""}>${PHASE_LABEL[p]}</option>`).join("")}
+  </select>`;
+}
+function viewPicks(){
+  const ms=sortByTime(MATCHES.filter(m=>m.phase===state.phase));
+  const dl=phaseDeadline(state.phase), unlocked=userUnlocked(state.phase), closed=phaseClosed(state.phase)&&!unlocked;
+  let banner="";
+  if(unlocked){const g=activeGrant(state.user.id);
+    banner=`<div class="note" style="background:#E9F6EE;border-color:#A9D9BC;color:#1B5E34;margin-bottom:12px">🔓 Acceso especial activo para <b>${PHASE_LABEL[state.phase]}</b> hasta las <b>${new Date(g.until).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b>. Guarda antes de que termine.</div>`;}
+  else if(closed) banner=`<div class="note" style="background:#FCEAE6;border-color:#E7B3A7;color:#8A2C16;margin-bottom:12px">⏰ Los pronósticos de <b>${PHASE_LABEL[state.phase]}</b> están cerrados. Ya no puedes editar.</div>`;
+  else if(dl) banner=`<div class="note" style="margin-bottom:12px">⏰ Cierra el <b>${new Date(dl).toLocaleString()}</b>. Después no podrás editar.</div>`;
+  return `<div class="row-between mb" style="gap:10px">
+    <div style="flex:1">${phaseSelect()}</div>
+    <span id="saveState" class="savestate"></span></div>
+    ${banner}
+    <div class="stack">${ms.map(m=>matchCard(m,"pick")).join("")}</div>`;
+}
+function rankRow(p,i){
+  const leader=i===0, open=state.rankOpen===p.id;
+  let detail="";
+  if(open){
+    const picks=state.allPicks[p.id]||{};
+    // 1. Ordenar partidos jugados por hora (igual que en Pronósticos)
+    const playedMs=sortByTime(MATCHES.filter(m=>{const r=state.results[m.id];return r&&r.h!=null&&r.a!=null;}));
+    // 2. Pre-calcular qué grupos ya cerraron
+    const closedGroups=new Set();
+    Object.keys(GROUPS).forEach(g=>{
+      const grpMs=MATCHES.filter(x=>x.kind==="group"&&x.group===g);
+      if(grpMs.every(x=>{const rr=state.results[x.id];return rr&&rr.h!=null&&rr.a!=null;})) closedGroups.add(g);
+    });
+    // 3. Tracking: último partido de cada grupo en la lista ordenada
+    const lastInGroup={};
+    playedMs.forEach((m,idx)=>{ if(m.kind==="group"&&closedGroups.has(m.group)) lastInGroup[m.group]=idx; });
+    let items="";
+    playedMs.forEach((m,idx)=>{
+      const r=state.results[m.id], pk=picks[m.id], det=scoreDetail(pk,r,m.phase);
+      const hn=m.kind==="group"?m.home[0]:(koName(m.id,"h")||"Por definir");
+      const an=m.kind==="group"?m.away[0]:(koName(m.id,"a")||"Por definir");
+      const pkTxt=(pk&&pk.h!=null&&pk.a!=null)?`${pk.h}-${pk.a}`:"—";
+      const cls=det&&det.label==="Exacto"?"pts-gold":(det&&det.pts>=3?"pts-ok":"pts-low");
+      items+=`<div style="padding:9px 0;border-bottom:1px solid var(--line)">
+        <div style="display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:700;color:var(--ink)">
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(hn)}</span>
+          <span style="flex-shrink:0">${r.h}-${r.a}</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">${esc(an)}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+          <span class="muted" style="font-size:12px">Pronóstico ${pkTxt}</span>
+          <span class="pts ${cls}" style="font-size:12px">${det?("+"+det.pts+" · "+LABEL_LONG[det.label]):"Sin pronóstico"}</span></div></div>`;
+      // 4. Insertar fila de tabla justo después del ÚLTIMO partido de ese grupo
+      if(m.kind==="group" && closedGroups.has(m.group) && lastInGroup[m.group]===idx){
+        const grpMs=MATCHES.filter(x=>x.kind==="group"&&x.group===m.group);
+        const real=calcGroupTable(grpMs,id=>{const rr=state.results[id];return(rr&&rr.h!=null)?rr:null;});
+        const pred=calcGroupTable(grpMs,id=>{const pp=picks[id];return(pp&&pp.h!=null)?pp:null;});
+        const tblPts=tableScore(pred,real);
+        const tblCls=tblPts>=7?"pts-gold":tblPts>=3?"pts-ok":"pts-low";
+        const predStr=pred.map(t=>t.flag+" "+t.name.split(" ")[0]).join(", ");
+        const realStr=real.map(t=>t.flag+" "+t.name.split(" ")[0]).join(", ");
+        items+=`<div style="padding:8px 0;border-bottom:1px solid var(--line);background:#F0F7F4;margin:0 -12px;padding-left:12px;padding-right:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;font-weight:700;color:var(--pitch)">🏁 Grupo ${m.group} cerrado · Posiciones de la tabla</span>
+            <span class="pts ${tblCls}" style="font-size:12px">${tblPts>0?"+"+tblPts+" pts":"0 pts"}</span></div>
+          <div style="font-size:11px;color:var(--sub);margin-top:3px">Tu predicción: ${predStr}</div>
+          <div style="font-size:11px;color:var(--sub)">Real: ${realStr}</div></div>`;
+      }
+    });
+    detail=`<div style="background:#F7FAF8;border:1px solid var(--line);border-radius:12px;padding:4px 12px;margin-top:6px">${items||`<p class="muted" style="padding:8px 0;margin:0">Aún no hay partidos con resultado.</p>`}</div>`;
+  }
+  return `<div><div class="rank-row ${leader?"leader":""}" style="cursor:pointer" onclick="openRank('${p.id}')"><div class="rank-left">
+      <span class="rank-pos" style="${leader?"color:var(--ink)":""}">${leader?"🏆":i+1}</span>
+      <div style="min-width:0"><div class="rank-name">${esc(p.name)}${state.user&&p.id===state.user.id?" (tú)":""}</div>
+      <div class="rank-sub" style="${leader?"color:var(--goldDeep)":""}">${p.ex} exactos · toca para ver</div></div></div>
+      <div class="rank-pts">${p.pts}</div></div>${detail}</div>`;
+}
+function viewRanking(){
+  const played=MATCHES.filter(m=>{const r=state.results[m.id];return r&&r.h!=null&&r.a!=null;}).length;
+  let body;
+  if(state.rankLoading) body=`<p class="muted">Calculando…</p>`;
+  else if(state.participants.length===0) body=`<p class="muted">Aún no hay jugadores.</p>`;
+  else if(played===0) body=`<p class="muted">Todavía no hay resultados cargados. Cuando el organizador cargue el primero, se arma la tabla.</p>`;
+  else body=`<div class="stack">${standings().map((p,i)=>rankRow(p,i)).join("")}</div>`;
+  return `<div class="row-between mb"><h2 class="title" style="margin:0">Ranking</h2>
+    <button class="btn" style="height:40px;padding:0 14px;font-size:13px;background:var(--card);color:var(--pitch);border:1px solid var(--line)" onclick="refreshRanking()">Actualizar</button></div>
+    <p class="muted" style="margin:0 0 12px">${played} de ${MATCHES.length} partidos con resultado. Toca un jugador para ver su detalle.</p>${body}`;
+}
+function viewResults(){
+  const ms=sortByTime(MATCHES.filter(m=>m.phase===state.phase));
+  const dl=phaseDeadline(state.phase);
+  const dlBox=`<div class="rulebox" style="gap:8px;margin-bottom:14px">
+      <div class="minilabel">⏰ CIERRE DE PRONÓSTICOS — ${PHASE_LABEL[state.phase].toUpperCase()}</div>
+      <p class="muted" style="margin:0">Después de esta fecha y hora, los jugadores ya no podrán editar esta fase.</p>
+      ${dl?`<p style="margin:0;font-weight:700;color:var(--ink)">Cierre actual: ${new Date(dl).toLocaleString()}</p>`:`<p class="muted" style="margin:0">Sin fecha límite (pueden editar siempre).</p>`}
+      <div class="field"><input class="nameinput" id="dlInput" type="datetime-local" ${dl?`value="${toLocalInput(dl)}"`:""} style="flex:1">
+        <button class="btn" style="height:42px" onclick="setDeadline()">Guardar</button></div>
+      ${dl?`<button class="btn" style="height:38px;background:var(--card);color:var(--danger);border:1px solid var(--line)" onclick="clearDeadline()">Quitar fecha límite</button>`:""}
+    </div>`;
+
+  return `<h2 class="title">Resultados oficiales</h2>
+    <p class="muted" style="margin:0 0 12px">Carga el marcador (y en eliminatorias, los equipos). Al cargar un resultado, el partido se cierra y se reparten los puntos.</p>
+    <div style="margin-bottom:12px">${phaseSelect()}</div>
+    ${dlBox}
+    ${(()=>{
+      const players=state.participants;
+      const grantList=Object.entries(((state.config&&state.config.grants)||{})).filter(([pid,g])=>g&&g.until&&Date.now()<g.until);
+      return `<div class="rulebox" style="gap:8px;margin-bottom:14px">
+        <div class="minilabel">🔓 ACCESO ESPECIAL DE EDICIÓN</div>
+        <p class="muted" style="margin:0">Permite que <b>un jugador específico</b> edite una jornada ya cerrada durante un tiempo limitado.</p>
+        ${players.length?`<div class="field" style="gap:6px;flex-wrap:wrap">
+          <select class="select" id="grPlayer" style="flex:1;min-width:120px">${players.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select>
+          <select class="select" id="grPhase" style="flex:1;min-width:100px">${PHASES.map(p=>`<option value="${p}"${state.phase===p?" selected":""}>${PHASE_LABEL[p]}</option>`).join("")}</select>
+          <select class="select" id="grMins" style="min-width:110px"><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select>
+          <button class="btn" onclick="grantEdit()">Dar acceso</button></div>`
+        :`<p class="muted" style="margin:0">Agrega jugadores primero.</p>`}
+        ${grantList.length?`<div class="stack" style="gap:6px">${grantList.map(([pid,g])=>{const p=state.participants.find(x=>x.id===pid);return `<div class="row-between" style="font-size:13px;align-items:center"><span>🔓 <b>${esc(p?p.name:pid)}</b> · ${PHASE_LABEL[g.phase]||g.phase} · hasta ${new Date(g.until).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</span><button class="btn" style="height:30px;padding:0 10px;font-size:12px;background:var(--card);color:var(--danger);border:1px solid var(--line)" onclick="revokeGrant('${pid}')">Quitar</button></div>`;}).join("")}</div>`:""}
+      </div>`;
+    })()}
+    <div class="stack">${ms.map(m=>matchCard(m,"result")).join("")}</div>`;
+}
+function viewPlayers(){
+  const list=state.participants, la=state.lastAdded;
+  return `<h2 class="title">Jugadores</h2>
+    <p class="muted" style="margin:0 0 12px">Agrega a cada participante con un código inicial y compárteselo. Al entrar por primera vez, la app le pedirá crear su propio código privado.</p>
+    ${la?`<div class="note" style="margin-bottom:12px">✅ <b>${esc(la.name)}</b> — código ${la.reset?"restablecido":"inicial"}: <b style="font-size:17px">${esc(la.code)}</b><br>Compárteselo ahora (después no podrás verlo).</div>`:""}
+    <div class="rulebox" style="margin-bottom:14px;gap:10px">
+      <input class="input" id="npName" placeholder="Nombre del jugador" />
+      <div class="field"><input class="input" id="npCode" placeholder="Código inicial (ej. 1234) — opcional" />
+        <button class="btn" onclick="addPlayerAdmin()">Agregar</button></div>
+      <p class="muted" style="margin:0">Si lo dejas vacío, te genero un código automático.</p>
+    </div>
+    ${list.length?`<div class="stack">${list.map(p=>`
+      <div class="rank-row"><div class="rank-left"><div style="min-width:0">
+        <div class="rank-name">${esc(p.name)}</div>
+        <div class="rank-sub">${p.personalized?"código privado del jugador":"código inicial sin cambiar"}</div></div></div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn" style="height:38px;padding:0 12px;font-size:13px;background:var(--card);color:var(--pitch);border:1px solid var(--line)" onclick="resetCode('${p.id}')">Restablecer</button>
+        <button class="btn" style="height:38px;padding:0 12px;font-size:13px;background:var(--card);color:var(--danger);border:1px solid var(--line)" onclick="deletePlayer('${p.id}')">Borrar</button>
+      </div></div>`).join("")}</div>`
+      :`<p class="muted">Aún no has agregado jugadores.</p>`}`;
+}
+function forceCodeScreen(){
+  return `<div class="gate-screen"><div class="gate-card">
+    <div class="gate-ball">⚽</div>
+    <h1 class="gate-title">Crea tu código</h1>
+    <p class="gate-sub">Hola, ${esc(state.user.name)}. Crea tu código personal para entrar. De ahora en adelante <b>solo tú lo sabrás</b>.</p>
+    <label class="gate-label">Nuevo código</label>
+    <input class="gate-input" id="cc1" type="password" placeholder="••••">
+    <label class="gate-label">Repite el código</label>
+    <input class="gate-input" id="cc2" type="password" placeholder="••••" onkeydown="if(event.key==='Enter')changeCode()">
+    ${state.ccError?`<div class="gate-err">${state.ccError}</div>`:""}
+    <button class="gate-btn" onclick="changeCode()">Guardar y entrar</button>
+    <a class="gate-admin" onclick="switchUser()">Salir</a>
+  </div></div>`;
+}
+function viewRules(){
+  const r=(pts,label,desc,big)=>`<div class="rulerow"><div class="rulepts ${big?"big":""}">${pts}</div>
+    <div><div class="rulelabel">${label}</div>${desc?`<div class="ruledesc">${desc}</div>`:""}</div></div>`;
+  return `<h2 class="title">Cómo se puntúa</h2>
+    <p class="muted" style="margin:0 0 12px">Solo ingresas marcadores. Puedes editar hasta que cierre la fase.</p>
+    <div class="minilabel" style="margin:0 0 8px">FASE DE GRUPOS</div>
+    <div class="rulebox">
+      ${r(7,"Marcador exacto","Los dos goles bien. Ej: pones 2–1 y queda 2–1.",true)}
+      ${r(5,"Marcador invertido","Goles bien pero al revés. Ej: 2–1 y queda 1–2.")}
+      ${r(4,"Ganador","Aciertas quién gana, aunque falles el marcador.")}
+      ${r(3,"Empate","Aciertas que es empate, aunque falles el marcador.")}
+      ${r(1,"Falló","Pronosticaste pero no acertaste.")}
+      ${r(0,"Vacío","No pusiste marcador, o quedó incompleto.")}
+    </div>
+    <div class="minilabel" style="margin:18px 0 8px">ELIMINATORIAS (cuenta el tiempo extra)</div>
+    <div class="rulebox">
+      ${r(7,"Marcador y ganador","Marcador exacto y el que avanza, correctos.",true)}
+      ${r(5,"Marcador, ganador al revés","Goles correctos pero gana el otro.")}
+      ${r(3,"Solo el ganador","Aciertas quién avanza, no el marcador.")}
+      ${r(1,"Falló","Nada correcto.")}
+    </div>
+    <div class="minilabel" style="margin:18px 0 8px">FINAL</div>
+    <div class="rulebox">
+      ${r(10,"Marcador y campeón","Igual que eliminatorias, pero vale más.",true)}
+      ${r(8,"Marcador, campeón al revés","")}
+      ${r(6,"Solo el campeón","")}
+      ${r(1,"Falló","")}
+    </div>
+    <div class="minilabel" style="margin:18px 0 8px">TABLAS DE GRUPO</div>
+    <div class="rulebox">
+      ${r(7,"Orden exacto 1-2-3-4","Aciertas las 4 posiciones del grupo en el orden correcto.",true)}
+      ${r(4,"1° y 2° correctos","Aciertas quién clasifica 1° y 2°, aunque el orden de 3° y 4° falle.",false)}
+      ${r(3,"Al menos una posición","Aciertas al menos una posición del grupo.",false)}
+      ${r(1,"Ninguna acertada","Pusiste pronósticos pero no acertaste ninguna posición.",false)}
+    </div>
+    <p class="muted" style="margin:14px 2px 0;line-height:1.5">Si hay empate en el ranking, gana quien tenga <b>más marcadores exactos</b>. En eliminatorias, los equipos salen "Por definir" hasta que el organizador los cargue.</p>`;
+}
+function header(){
+  return `<div class="header"><div class="wrap header-inner">
+    <div class="brand"><span style="font-size:26px">🏆</span>
+      <div><div class="t">Polla Mundialista 2026</div><div class="s">GRUPOS Y ELIMINATORIAS</div></div></div>
+    ${state.user?`<button class="chip" onclick="switchUser()">${esc(state.user.name)} ⌄</button>`:""}
+  </div></div>`;
+}
+function nav(){
+  const b=(t,ic,lb)=>`<button class="navbtn ${state.tab===t?"on":""}" onclick="setTab('${t}')"><span class="ic">${ic}</span><span class="lb">${lb}</span></button>`;
+  if(state.user&&state.user.org)
+    return `<div class="nav">${b("players","👥","Jugadores")}${b("results","📋","Resultados")}${b("tablas","📊","Tablas")}${b("ranking","🏆","Ranking")}${b("rules","ℹ️","Reglas")}</div>`;
+  return `<div class="nav">${b("picks","⚽","Pronósticos")}${b("tablas","📊","Tablas")}${b("ranking","🏆","Ranking")}${b("rules","ℹ️","Reglas")}</div>`;
+}
+function gate(){
+  let inner;
+  if(state.gateOrg){
+    const has=!!(state.config&&state.config.pin);
+    inner=`<div class="gate-ball">⚽</div>
+      <h1 class="gate-title">Administrador</h1>
+      <p class="gate-sub">${has?"Escribe tu PIN para entrar.":"Crea tu PIN de administrador (solo tú lo tendrás)."}</p>
+      <label class="gate-label">PIN</label>
+      <input class="gate-input" id="pinInput" type="password" placeholder="••••" onkeydown="if(event.key==='Enter')orgLogin()">
+      ${state.loginError?`<div class="gate-err">${state.loginError}</div>`:""}
+      <button class="gate-btn" onclick="orgLogin()">${has?"Entrar":"Crear PIN"}</button>
+      <a class="gate-admin" onclick="backToList()">← Volver</a>`;
+  }else{
+    const opts=`<option value="">— Elige tu nombre —</option>`+
+      state.participants.map(p=>`<option value="${p.id}" ${state.gateSel===p.id?"selected":""}>${esc(p.name)}</option>`).join("");
+    inner=`<div class="gate-ball">⚽</div>
+      <h1 class="gate-title">Polla Mundialista 2026</h1>
+      <p class="gate-sub">Elige tu nombre y escribe tu código.</p>
+      ${state.participants.length?"":`<p class="gate-sub" style="margin-top:-12px">Aún no hay jugadores. Entra como administrador para agregarlos.</p>`}
+      <label class="gate-label">Tu nombre</label>
+      <select class="gate-select" id="gName">${opts}</select>
+      <label class="gate-label">Tu código</label>
+      <input class="gate-input" id="gCode" type="password" placeholder="••••" onkeydown="if(event.key==='Enter')gateLogin()">
+      ${state.loginError?`<div class="gate-err">${state.loginError}</div>`:""}
+      <button class="gate-btn" onclick="gateLogin()">Entrar</button>
+      <a class="gate-admin" onclick="showOrgGate()">Soy administrador</a>`;
+  }
+  return `<div class="gate-screen"><div class="gate-card">${inner}</div></div>`;
+}
+
+
+function applyResult(teams, homeName, awayName, h, a){
+  const hi=parseInt(h,10), ai=parseInt(a,10);
+  teams[homeName].pj++; teams[awayName].pj++;
+  teams[homeName].gf+=hi; teams[homeName].gc+=ai;
+  teams[awayName].gf+=ai; teams[awayName].gc+=hi;
+  if(hi>ai){teams[homeName].pts+=3;}
+  else if(hi<ai){teams[awayName].pts+=3;}
+  else{teams[homeName].pts+=1; teams[awayName].pts+=1;}
+}
+function calcGroupTable(matches, getScore){
+  // getScore(matchId) => {h, a} or null
+  const teams={};
+  // Inicializar todos los equipos
+  matches.forEach(m=>{
+    [m.home[0],m.away[0]].forEach(t=>{if(!teams[t])teams[t]={name:t,flag:m.home[0]===t?m.home[1]:m.away[1],pj:0,gf:0,gc:0,pts:0};});
+  });
+  // Incluir resultados reales de J1 (base fija para todos)
+  const g=matches[0]&&matches[0].group;
+  if(g&&J1_RESULTS[g]){
+    const grp=GROUPS[g];
+    PAIRS1.forEach(([hi,ai],idx)=>{
+      const res=J1_RESULTS[g][idx];
+      if(res&&grp[hi]&&grp[ai]) applyResult(teams,grp[hi][0],grp[ai][0],res.h,res.a);
+    });
+  }
+  // Aplicar resultados de J2/J3 via getScore
+  matches.forEach(m=>{
+    const sc=getScore(m.id);
+    if(sc==null||sc.h==null||sc.a==null) return;
+    applyResult(teams,m.home[0],m.away[0],sc.h,sc.a);
+  });
+  return Object.values(teams).sort((a,b)=>b.pts-a.pts||(b.gf-b.gc)-(a.gf-a.gc)||b.gf-a.gf);
+}
+
+
+function tableScore(pred, real){
+  // pred y real: arrays ordenados de equipos [{name,...}]
+  if(!pred.length||!real.length) return 0;
+  const predHasPicks=pred.some(t=>t.pj>0);
+  if(!predHasPicks) return 0; // no puso pronósticos
+  const exactOrder=pred.every((t,i)=>real[i]&&real[i].name===t.name);
+  if(exactOrder) return 7;
+  const top2ok=real[0]&&real[1]&&pred[0]&&pred[1]&&
+    real[0].name===pred[0].name&&real[1].name===pred[1].name;
+  if(top2ok) return 4;
+  const anyMatch=pred.some((t,i)=>real[i]&&real[i].name===t.name);
+  if(anyMatch) return 3;
+  return 1; // participó pero no acertó nada
+}
+function viewTablas(){
+  const groups=Object.keys(GROUPS).sort();
+  const realMatches=MATCHES.filter(m=>m.kind==="group");
+  const picks=state.myPicks||{};
+  let totalScore=0;
+
+  const thead=`<tr style="font-size:11px;color:var(--sub);border-bottom:1px solid var(--line)">
+    <th style="padding:4px 3px;text-align:left;font-weight:600">#</th>
+    <th style="padding:4px 3px;text-align:left;font-weight:600">Equipo</th>
+    <th style="padding:4px 3px;text-align:center;font-weight:600">PJ</th>
+    <th style="padding:4px 3px;text-align:center;font-weight:600">DG</th>
+    <th style="padding:4px 3px;text-align:center;font-weight:600">Pts</th></tr>`;
+
+  const cards=groups.map(g=>{
+    const gms=realMatches.filter(m=>m.group===g);
+    if(!gms.length) return "";
+
+    const real=calcGroupTable(gms, id=>{const r=state.results[id];return(r&&r.h!=null)?r:null;});
+    const pred=calcGroupTable(gms, id=>{const p=picks[id];return(p&&p.h!=null)?p:null;});
+
+    // ¿Cerrado? = todos los partidos del grupo tienen resultado
+    const closed=gms.every(m=>{const r=state.results[m.id];return r&&r.h!=null&&r.a!=null;});
+
+    const pts=closed?tableScore(pred,real):0;
+    totalScore+=pts;
+
+    // Badge header: "en curso" o "+X pts"
+    const badgeClosed=`<span style="background:${pts>=7?"var(--gold)":pts>=3?"#E9F6EE":"#F1EDE9"};color:${pts>=7?"var(--ink)":pts>=3?"#1B5E34":"var(--sub)"};font-weight:800;font-size:12px;padding:3px 10px;border-radius:20px">+${pts} pts</span>`;
+    const badgeOpen=`<span style="background:var(--card);color:var(--sub);font-weight:600;font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--line)">en curso</span>`;
+    const badge=closed?badgeClosed:badgeOpen;
+
+    // Fila de tabla: check si acertó posición, línea divisoria tras el 2°
+    const makeRow=(t,i,isPred)=>{
+      const dg=t.gf-t.gc;
+      const dgStr=t.pj>0?(dg>0?"+"+dg:dg):"-";
+      const ptsStr=t.pj>0?t.pts:"-";
+      const realPos=closed?real.findIndex(r=>r.name===t.name):-1;
+      const ok=isPred&&closed&&realPos===i;
+      const divider=i===1?"border-bottom:2px solid var(--pitch);":"";
+      const bgOk=ok?"background:#E9F6EE;":"";
+      const numStyle=i<2?"font-weight:800;color:var(--pitch)":"color:var(--sub)";
+      const check=ok?" ✓":"";
+      return `<tr style="${bgOk}${divider}">
+        <td style="padding:6px 3px;${numStyle};font-size:13px">${i+1}</td>
+        <td style="padding:6px 3px;font-size:13px;font-weight:${i<2?700:400}">${t.flag} ${t.name}${isPred?`<span style="color:var(--grass);font-weight:700">${check}</span>`:""}</td>
+        <td style="padding:6px 3px;text-align:center;color:var(--sub);font-size:12px">${t.pj}</td>
+        <td style="padding:6px 3px;text-align:center;color:var(--sub);font-size:12px">${dgStr}</td>
+        <td style="padding:6px 3px;text-align:center;font-weight:700;font-size:13px">${ptsStr}</td></tr>`;
+    };
+
+    const predRows=pred.map((t,i)=>makeRow(t,i,true)).join("");
+    const realRows=real.map((t,i)=>makeRow(t,i,false)).join("");
+
+    return `<div class="rulebox" style="margin-bottom:14px">
+      <div class="row-between" style="align-items:center;margin-bottom:10px">
+        <div style="font-weight:800;font-size:15px;color:var(--ink)">Grupo ${g}</div>
+        ${badge}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Tu tabla</div>
+          <table style="width:100%;border-collapse:collapse">${thead}${predRows}</table>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Tabla real</div>
+          <table style="width:100%;border-collapse:collapse">${thead}${realRows}</table>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `<h2 class="title">Tablas de grupo</h2>
+    <p class="muted" style="margin:0 0 14px">Los ✓ indican posiciones que acertaste. La línea separa clasificados de eliminados.</p>
+    ${totalScore>0?`<div class="note" style="background:#E9F6EE;border-color:#A9D9BC;color:#1B5E34;margin-bottom:14px">🎯 Posiciones acertadas: <b>${totalScore}</b> pts</div>`:""}
+    ${cards}`;
+}
+
+/* ===== render ===== */
+function render(){
+  const root=el("app"); if(!root) return;
+  const y=window.scrollY;
+  if(!state.configured){
+    root.innerHTML=`<div class="setup"><h2 class="title">Falta conectar Firebase</h2>
+      <p>Pega tu configuración de Firebase donde dice <code>PEGA-AQUI</code> y vuelve a subir el archivo.</p></div>`;
+    return;
+  }
+  if(state.error){
+    root.innerHTML=`<div class="setup"><h2 class="title">No se pudo conectar</h2>
+      <p class="muted">${esc(state.error)}</p>
+      <p class="muted">Revisa la configuración de Firebase (incluida la databaseURL) y que las reglas de Realtime Database permitan lectura/escritura.</p></div>`;
+    return;
+  }
+  if(!state.user){ root.innerHTML=gate(); return; }
+  const org=state.user.org;
+  if(!org && !state.user.personalized){ root.innerHTML=forceCodeScreen(); return; }
+  let v="";
+  if(org){
+    if(state.tab==="results") v=viewResults();
+    else if(state.tab==="ranking") v=viewRanking();
+    else if(state.tab==="tablas") v=viewTablas();
+    else if(state.tab==="rules") v=viewRules();
+    else v=viewPlayers();
+  }else{
+    if(state.tab==="ranking") v=viewRanking();
+    else if(state.tab==="tablas") v=viewTablas();
+    else if(state.tab==="rules") v=viewRules();
+    else v=viewPicks();
+  }
+  root.innerHTML=`${header()}<div class="content wrap">${v}</div>${nav()}`;
+  window.scrollTo(0,y);
+}
+
+
+window.bumpFn=(fn,mid,side,delta)=>{ (fn==="bumpResult"?bumpResult:bumpPick)(mid,side,delta); };
+window.setTab=setTab; window.setPhase=setPhase; window.setBracket=setBracket;
+window.setSchedule=setSchedule; window.openRank=openRank;
+window.setDeadline=setDeadline; window.clearDeadline=clearDeadline; window.clearResult=clearResult; window.grantEdit=grantEdit; window.revokeGrant=revokeGrant;
+
+window.gateLogin=gateLogin; window.backToList=backToList;
+window.showOrgGate=showOrgGate; window.orgLogin=orgLogin;
+window.addPlayerAdmin=addPlayerAdmin; window.deletePlayer=deletePlayer; window.resetCode=resetCode;
+window.changeCode=changeCode; window.switchUser=switchUser; window.refreshRanking=refreshRanking;
+
+start();
+</script>
+</body>
+</html>
