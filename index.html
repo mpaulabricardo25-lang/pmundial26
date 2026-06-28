@@ -579,7 +579,7 @@ function matchCard(m,mode){
     eyebrow=`GRUPO ${m.group} · ${PHASE_LABEL[m.phase].toUpperCase()}`;
   }else{
     const hn=koName(m.id,"h"), an=koName(m.id,"a");
-    hLabel=hn||"Por definir"; aLabel=an||"Por definir";
+    hLabel=hn||"Por definir"; aLabel=an||"Por definir"; hFlag=(hn&&TEAM[hn])?TEAM[hn][1]:""; aFlag=(an&&TEAM[an])?TEAM[an][1]:"";
     eyebrow=`${PHASE_LABEL[m.phase].toUpperCase()} · PARTIDO ${m.num}`;
     defined=!!(hn&&an);
   }
