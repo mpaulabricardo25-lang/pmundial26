@@ -159,8 +159,8 @@ const PHASE_LABEL = {J2:"Jornada 2",J3:"Jornada 3",R32:"Dieciseisavos",R16:"Octa
 
 /* lookup nombre -> [nombre,bandera] */
 const TEAM={}; Object.values(GROUPS).forEach(arr=>arr.forEach(t=>{TEAM[t[0]]=t;}));
-/* helper de fecha local: D(día, hora, min) en junio 2026 */
-const D=(d,h,mi)=>new Date(2026,5,d,h,mi).getTime();
+/* helper de fecha local: D(día, hora, min) — junio si día<=30, julio si día<=31 con offset */
+const D=(d,h,mi)=>d<=30?new Date(2026,5,d,h,mi).getTime():new Date(2026,6,d-30,h,mi).getTime();
 /* Jornada 3: partidos oficiales (local, visitante, fecha/hora) — orden = tarjeta */
 const J3 = {
   A:[["Rep. Checa","México",D(24,20,0)],["Sudáfrica","Corea del Sur",D(24,20,0)]],
@@ -232,15 +232,15 @@ const R32 = [
   ["Costa de Marfil","Noruega",D(30,12,0)],
   ["Francia","Suecia",D(30,16,0)],
   ["México","Ecuador",D(30,20,0)],
-  ["Inglaterra","RD Congo",D(1,11,0)],
-  ["Bélgica","Senegal",D(1,15,0)],
-  ["USA","Bosnia",D(1,19,0)],
-  ["España","Austria",D(2,14,0)],
-  ["Portugal","Croacia",D(2,18,0)],
-  ["Suiza","Argelia",D(2,22,0)],
-  ["Australia","Egipto",D(3,13,0)],
-  ["Argentina","Cabo Verde",D(3,17,0)],
-  ["Colombia","Ghana",D(3,20,30)],
+  ["Inglaterra","RD Congo",D(31,11,0)],
+  ["Bélgica","Senegal",D(31,15,0)],
+  ["USA","Bosnia",D(31,19,0)],
+  ["España","Austria",D(32,14,0)],
+  ["Portugal","Croacia",D(32,18,0)],
+  ["Suiza","Argelia",D(32,22,0)],
+  ["Australia","Egipto",D(33,13,0)],
+  ["Argentina","Cabo Verde",D(33,17,0)],
+  ["Colombia","Ghana",D(33,20,30)],
 ];
 R32.forEach(([h,a,ts],i)=>{
   const id=`ko-R32-${i+1}`;
