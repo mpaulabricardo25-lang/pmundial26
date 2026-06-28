@@ -154,6 +154,7 @@ const GROUPS = {
 };
 const PAIRS = { 2:[[0,2],[1,3]], 3:[[0,3],[1,2]] };
 const PHASES = ["R32","R16","QF","SF","TP","FIN"];
+const PHASES_ALL = ["J2","J3","R32","R16","QF","SF","TP","FIN"]; // todas, para cálculos internos
 const PHASE_LABEL = {J2:"Jornada 2",J3:"Jornada 3",R32:"Dieciseisavos",R16:"Octavos",
   QF:"Cuartos de final",SF:"Semifinal",TP:"Tercer puesto",FIN:"Final"};
 
@@ -702,7 +703,7 @@ function rankRow(p,i){
   if(open){
     const picks=state.allPicks[p.id]||{};
     // 1. Ordenar partidos jugados por hora (igual que en Pronósticos)
-    const playedMs=sortByTime(MATCHES.filter(m=>{const r=state.results[m.id];return r&&r.h!=null&&r.a!=null;}));
+    const playedMs=sortByTime(MATCHES.filter(m=>{const r=state.results[m.id];return r&&r.h!=null&&r.a!=null&&PHASES.includes(m.phase);}));
     // 2. Pre-calcular qué grupos ya cerraron
     const closedGroups=new Set();
     Object.keys(GROUPS).forEach(g=>{
@@ -753,7 +754,7 @@ function rankRow(p,i){
       <div class="rank-pts">${p.pts}</div></div>${detail}</div>`;
 }
 function viewRanking(){
-  const played=MATCHES.filter(m=>{const r=state.results[m.id];return r&&r.h!=null&&r.a!=null;}).length;
+  const played=MATCHES.filter(m=>{const r=state.results[m.id];return r&&r.h!=null&&r.a!=null&&PHASES.includes(m.phase);}).length;
   let body;
   if(state.rankLoading) body=`<p class="muted">Calculando…</p>`;
   else if(state.participants.length===0) body=`<p class="muted">Aún no hay jugadores.</p>`;
