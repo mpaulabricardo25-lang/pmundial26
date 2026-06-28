@@ -260,6 +260,16 @@ function scoreDetail(pick,res,phase){
   const exact=(ph===rh&&pa===ra), reversed=(ph===ra&&pa===rh&&ph!==pa);
   const ps=Math.sign(ph-pa),rs=Math.sign(rh-ra), same=ps===rs;
   const isGroup=(phase==="J2"||phase==="J3"), isFinal=(phase==="FIN");
+  const isKO=!isGroup;
+  const drawKO=isKO&&rh===ra;
+  if(drawKO){
+    const pickedPen=pick.pen||null, resPen=res.pen||null;
+    const penOk=resPen&&pickedPen&&pickedPen===resPen;
+    if(exact&&penOk) return {pts:isFinal?10:7,label:"Exacto"};
+    if(exact&&!penOk) return {pts:isFinal?8:5,label:"Invertido"};
+    if(!exact&&penOk) return {pts:isFinal?6:3,label:"Ganador"};
+    return {pts:1,label:"Falló"};
+  }
   if(exact) return {pts:isFinal?10:7,label:"Exacto"};
   if(reversed) return {pts:isFinal?8:5,label:"Invertido"};
   if(same){
@@ -480,6 +490,28 @@ function setBracket(mid,side,value){
   clearTimeout(brTimer);
   brTimer=setTimeout(async()=>{try{await set(rBracket(),state.bracket);}catch(e){}},500);
 }
+function setPenPick(mid,team){
+  const _m=MATCH_BY_ID[mid];
+  if(isLocked(mid)||(_m&&phaseClosed(_m.phase)&&!userUnlocked(_m.phase))) return;
+  const cell=Object.assign({h:null,a:null},state.myPicks[mid]||{});
+  cell.pen=(cell.pen===team)?null:team;
+  state.myPicks[mid]=cell;
+  setSaveState("saving");
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{await set(rPick(state.user.id),state.myPicks); setSaveState("saved"); setTimeout(()=>setSaveState("idle"),1500);}
+    catch(e){setSaveState("error");}
+  },500);
+  render();
+}
+function setPenResult(mid,team){
+  const cell=Object.assign({h:null,a:null},state.results[mid]||{});
+  cell.pen=(cell.pen===team)?null:team;
+  state.results[mid]=cell;
+  clearTimeout(resTimer);
+  resTimer=setTimeout(async()=>{try{await set(rResults(),state.results);}catch(e){}},400);
+  render();
+}
 let schTimer=null;
 function setSchedule(mid,value){
   const next={...state.schedule};
@@ -597,14 +629,34 @@ function matchCard(m,mode){
   if(!editing && m.kind==="ko" && !defined){
     bodyParts=`<div class="tbd">Partido por definir — podrás pronosticar cuando el organizador cargue los equipos.</div>`;
   }else{
+    const isDrawn=(cell.h!=null&&cell.a!=null&&cell.h===cell.a);
+    const isKO=m.kind==="ko";
+    let penSelector="";
+    if(isKO&&isDrawn&&defined){
+      const penVal=cell.pen||"";
+      const hSel=penVal===hLabel?"selected":"";
+      const aSel=penVal===aLabel?"selected":"";
+      if(disabled){
+        penSelector=penVal?`<div style="font-size:12px;color:var(--sub);margin:6px 0 2px;font-weight:600">⚽ Pasa por penales: <b style="color:var(--ink)">${penVal}</b></div>`:`<div style="font-size:12px;color:var(--sub);margin:6px 0 2px">⚽ No elegiste quién pasa por penales</div>`;
+      }else{
+        const fn2=mode==="result"?"setPenResult":"setPenPick";
+        penSelector=`<div style="margin:8px 0 2px">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);letter-spacing:.5px;margin-bottom:4px">⚽ ¿QUIÉN PASA POR PENALES?</div>
+          <div style="display:flex;gap:8px">
+            <button onclick="${fn2}('${m.id}','${hLabel}')" style="flex:1;padding:8px 4px;border-radius:8px;border:2px solid ${penVal===hLabel?"var(--pitch)":"var(--line)"};background:${penVal===hLabel?"var(--pitch)":"var(--card)"};color:${penVal===hLabel?"#fff":"var(--ink)"};font-size:13px;font-weight:600;cursor:pointer">${hFlag} ${hLabel}</button>
+            <button onclick="${fn2}('${m.id}','${aLabel}')" style="flex:1;padding:8px 4px;border-radius:8px;border:2px solid ${penVal===aLabel?"var(--pitch)":"var(--line)"};background:${penVal===aLabel?"var(--pitch)":"var(--card)"};color:${penVal===aLabel?"#fff":"var(--ink)"};font-size:13px;font-weight:600;cursor:pointer">${aFlag} ${aLabel}</button>
+          </div></div>`;
+      }
+    }
     bodyParts=`${teamLine(m.id,"h",hLabel,hFlag,cell.h,disabled,mode)}
-      ${teamLine(m.id,"a",aLabel,aFlag,cell.a,disabled,mode)}`;
+      ${teamLine(m.id,"a",aLabel,aFlag,cell.a,disabled,mode)}${penSelector}`;
   }
 
   let foot="";
   if(!editing&&locked){
     const cls=det&&det.label==="Exacto"?"pts-gold":(det&&det.pts>=3?"pts-ok":"pts-low");
-    foot=`<div class="result-line"><span>Final: <b>${res.h}–${res.a}</b></span>
+    const penLine=res&&res.h===res.a&&m.kind==="ko"&&res.pen?` · Penales: <b>${res.pen}</b>`:"";
+    foot=`<div class="result-line"><span>Final: <b>${res.h}–${res.a}</b>${penLine}</span>
       <span class="pts ${cls}">${det?("+"+det.pts+" · "+LABEL_LONG[det.label]):"Sin pronóstico"}</span></div>`;
   }
   let resFoot="";
@@ -1023,6 +1075,7 @@ function render(){
 
 
 window.bumpFn=(fn,mid,side,delta)=>{ (fn==="bumpResult"?bumpResult:bumpPick)(mid,side,delta); };
+window.setPenPick=setPenPick; window.setPenResult=setPenResult;
 window.setTab=setTab; window.setPhase=setPhase; window.setBracket=setBracket;
 window.setSchedule=setSchedule; window.openRank=openRank;
 window.setDeadline=setDeadline; window.clearDeadline=clearDeadline; window.clearResult=clearResult; window.grantEdit=grantEdit; window.revokeGrant=revokeGrant;
