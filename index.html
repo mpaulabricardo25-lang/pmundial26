@@ -253,7 +253,7 @@ R32.forEach(([h,a],i)=>{ R32_BRACKET[`ko-R32-${i+1}`]={h,a}; });
 });
 const MATCH_BY_ID={}; MATCHES.forEach(m=>{MATCH_BY_ID[m.id]=m;});
 
-function scoreDetail(pick,res,phase){
+function scoreDetail(pick,res,phase,m){
   if(!pick||pick.h==null||pick.a==null) return null;
   if(!res||res.h==null||res.a==null) return null;
   const ph=pick.h,pa=pick.a,rh=res.h,ra=res.a;
@@ -261,24 +261,28 @@ function scoreDetail(pick,res,phase){
   const ps=Math.sign(ph-pa),rs=Math.sign(rh-ra), same=ps===rs;
   const isGroup=(phase==="J2"||phase==="J3"), isFinal=(phase==="FIN");
   const isKO=!isGroup;
-  const drawKO=isKO&&rh===ra;
-  if(drawKO){
-    const pickedPen=pick.pen||null, resPen=res.pen||null;
-    const penOk=resPen&&pickedPen&&pickedPen===resPen;
-    if(exact&&penOk) return {pts:isFinal?10:7,label:"Exacto"};
-    if(exact&&!penOk) return {pts:isFinal?8:5,label:"Invertido"};
-    if(!exact&&penOk) return {pts:isFinal?6:3,label:"Ganador"};
+  if(isKO){
+    // Nombres de los equipos para convertir el pen (nombre) al lado ganador
+    const hName = m ? (m.kind==="group"?m.home[0]:(koName(m.id,"h")||null)) : null;
+    const aName = m ? (m.kind==="group"?m.away[0]:(koName(m.id,"a")||null)) : null;
+    // Quién avanza según pronóstico: por marcador; si empate, por el equipo elegido en penales
+    let pickAdv = ph>pa ? "h" : (pa>ph ? "a" : (pick.pen===hName?"h":(pick.pen===aName?"a":null)));
+    let resAdv  = rh>ra ? "h" : (ra>rh ? "a" : (res.pen===hName?"h":(res.pen===aName?"a":null)));
+    const advOk = pickAdv!=null && resAdv!=null && pickAdv===resAdv;
+    if(exact && advOk) return {pts:isFinal?10:7,label:"Exacto"};
+    if(exact && !advOk) return {pts:isFinal?8:5,label:"Invertido"};
+    if(!exact && reversed) return {pts:isFinal?8:5,label:"Invertido"};
+    if(advOk) return {pts:isFinal?6:3,label:"Ganador"};
     return {pts:1,label:"Falló"};
   }
-  if(exact) return {pts:isFinal?10:7,label:"Exacto"};
-  if(reversed) return {pts:isFinal?8:5,label:"Invertido"};
+  if(exact) return {pts:7,label:"Exacto"};
+  if(reversed) return {pts:5,label:"Invertido"};
   if(same){
-    if(isGroup) return rs===0?{pts:3,label:"Empate"}:{pts:4,label:"Ganador"};
-    return {pts:isFinal?6:3,label:"Ganador"};
+    return rs===0?{pts:3,label:"Empate"}:{pts:4,label:"Ganador"};
   }
   return {pts:1,label:"Falló"};
 }
-function scoreFor(pick,res,phase){const d=scoreDetail(pick,res,phase);return d?d.pts:null;}
+function scoreFor(pick,res,phase,m){const d=scoreDetail(pick,res,phase,m);return d?d.pts:null;}
 function slugify(name){
   const b=name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
@@ -579,7 +583,7 @@ function standings(){
     const picks=state.allPicks[p.id]||{}; let pts=0,ex=0;
     for(const m of MATCHES){
       const r=state.results[m.id]; if(!r||r.h==null||r.a==null) continue;
-      const det=scoreDetail(picks[m.id],r,m.phase); if(det){pts+=det.pts; if(det.label==="Exacto")ex++;}
+      const det=scoreDetail(picks[m.id],r,m.phase,m); if(det){pts+=det.pts; if(det.label==="Exacto")ex++;}
     }
     // Sumar puntos de tabla de grupo (nuevo sistema: 7/4/3/1)
     const closedGroups=new Set();
@@ -615,7 +619,7 @@ function matchCard(m,mode){
   const closedByTime=!editing&&phaseClosed(m.phase)&&!userUnlocked(m.phase);
   const disabled=editing?false:(!!locked||closedByTime);
   const cell=editing?(res||{h:null,a:null}):(state.myPicks[m.id]||{h:null,a:null});
-  const det=(!editing&&locked)?scoreDetail(state.myPicks[m.id],res,m.phase):null;
+  const det=(!editing&&locked)?scoreDetail(state.myPicks[m.id],res,m.phase,m):null;
 
   let hLabel,aLabel,hFlag="",aFlag="",eyebrow,defined=true;
   if(m.kind==="group"){
@@ -726,7 +730,7 @@ function rankRow(p,i){
     playedMs.forEach((m,idx)=>{ if(m.kind==="group"&&closedGroups.has(m.group)) lastInGroup[m.group]=idx; });
     let items="";
     playedMs.forEach((m,idx)=>{
-      const r=state.results[m.id], pk=picks[m.id], det=scoreDetail(pk,r,m.phase);
+      const r=state.results[m.id], pk=picks[m.id], det=scoreDetail(pk,r,m.phase,m);
       const hn=m.kind==="group"?m.home[0]:(koName(m.id,"h")||"Por definir");
       const an=m.kind==="group"?m.away[0]:(koName(m.id,"a")||"Por definir");
       const pkTxt=(pk&&pk.h!=null&&pk.a!=null)?`${pk.h}-${pk.a}`:"—";
