@@ -272,7 +272,7 @@ function scoreDetail(pick,res,phase,m){
     if(exact && advOk) return {pts:isFinal?10:7,label:"Exacto"};
     if(exact && !advOk) return {pts:isFinal?8:5,label:"Invertido"};
     if(!exact && reversed) return {pts:isFinal?8:5,label:"Invertido"};
-    if(advOk) return {pts:isFinal?6:3,label:"Ganador"};
+    if(advOk) return {pts:isFinal?6:4,label:"Ganador"};
     return {pts:1,label:"Falló"};
   }
   if(exact) return {pts:7,label:"Exacto"};
@@ -865,7 +865,7 @@ function viewRules(){
     <div class="rulebox">
       ${r(7,"Marcador y ganador","Marcador exacto y el que avanza, correctos.",true)}
       ${r(5,"Marcador, ganador al revés","Goles correctos pero gana el otro.")}
-      ${r(3,"Solo el ganador","Aciertas quién avanza, no el marcador.")}
+      ${r(4,"Solo el ganador","Aciertas quién avanza, no el marcador.")}
       ${r(1,"Falló","Nada correcto.")}
     </div>
     <div class="minilabel" style="margin:18px 0 8px">FINAL</div>
