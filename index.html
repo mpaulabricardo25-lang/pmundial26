@@ -73,6 +73,10 @@
   .rank-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);
     border:1px solid var(--line);border-radius:12px;padding:12px 14px;gap:10px;}
   .rank-row.leader{background:var(--gold);border-color:var(--gold);}
+  .rank-row.silver{background:#F4F6F8;border-color:#C9D2DA;}
+  .rank-row.bronze{background:#F9F0E8;border-color:#E0C4A8;}
+  .rank-row.me{border:2px solid var(--pitch);box-shadow:0 0 0 3px rgba(11,77,52,.10);}
+  .rank-diff{font-size:11px;font-weight:700;color:var(--sub);margin-top:2px;}
   .rank-left{display:flex;align-items:center;gap:12px;min-width:0;}
   .rank-pos{font-weight:800;font-size:16px;width:24px;color:var(--sub);}
   .rank-name{font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -712,8 +716,9 @@ function viewPicks(){
     ${banner}
     <div class="stack">${ms.map(m=>matchCard(m,"pick")).join("")}</div>`;
 }
-function rankRow(p,i){
-  const leader=i===0, open=state.rankOpen===p.id;
+function rankRow(p,i,leaderPts){
+  const leader=i===0, silver=i===1, bronze=i===2, open=state.rankOpen===p.id;
+  const isMe=state.user&&p.id===state.user.id;
   let detail="";
   if(open){
     const picks=state.allPicks[p.id]||{};
@@ -762,10 +767,14 @@ function rankRow(p,i){
     });
     detail=`<div style="background:#F7FAF8;border:1px solid var(--line);border-radius:12px;padding:4px 12px;margin-top:6px">${items||`<p class="muted" style="padding:8px 0;margin:0">Aún no hay partidos con resultado.</p>`}</div>`;
   }
-  return `<div><div class="rank-row ${leader?"leader":""}" style="cursor:pointer" onclick="openRank('${p.id}')"><div class="rank-left">
-      <span class="rank-pos" style="${leader?"color:var(--ink)":""}">${leader?"🏆":i+1}</span>
-      <div style="min-width:0"><div class="rank-name">${esc(p.name)}${state.user&&p.id===state.user.id?" (tú)":""}</div>
-      <div class="rank-sub" style="${leader?"color:var(--goldDeep)":""}">${p.ex} exactos · toca para ver</div></div></div>
+  const medal=leader?"🥇":(silver?"🥈":(bronze?"🥉":i+1));
+  const rowCls=leader?"leader":(silver?"silver":(bronze?"bronze":""));
+  const diff=(!leader&&leaderPts!=null)?(leaderPts-p.pts):0;
+  const diffTxt=(!leader&&diff>0)?`<div class="rank-diff">−${diff} del líder</div>`:"";
+  return `<div><div class="rank-row ${rowCls} ${isMe?"me":""}" style="cursor:pointer" onclick="openRank('${p.id}')"><div class="rank-left">
+      <span class="rank-pos" style="${leader?"color:var(--ink)":""};font-size:${(leader||silver||bronze)?"20px":"16px"}">${medal}</span>
+      <div style="min-width:0"><div class="rank-name">${esc(p.name)}${isMe?" (tú)":""}</div>
+      <div class="rank-sub" style="${leader?"color:var(--goldDeep)":""}">${p.ex} exactos · toca para ver</div>${diffTxt}</div></div>
       <div class="rank-pts">${p.pts}</div></div>${detail}</div>`;
 }
 function viewRanking(){
@@ -774,7 +783,7 @@ function viewRanking(){
   if(state.rankLoading) body=`<p class="muted">Calculando…</p>`;
   else if(state.participants.length===0) body=`<p class="muted">Aún no hay jugadores.</p>`;
   else if(played===0) body=`<p class="muted">Todavía no hay resultados cargados. Cuando el organizador cargue el primero, se arma la tabla.</p>`;
-  else body=`<div class="stack">${standings().map((p,i)=>rankRow(p,i)).join("")}</div>`;
+  else {const st=standings(); const lp=st.length?st[0].pts:0; body=`<div class="stack">${st.map((p,i)=>rankRow(p,i,lp)).join("")}</div>`;}
   return `<div class="row-between mb"><h2 class="title" style="margin:0">Ranking</h2>
     <button class="btn" style="height:40px;padding:0 14px;font-size:13px;background:var(--card);color:var(--pitch);border:1px solid var(--line)" onclick="refreshRanking()">Actualizar</button></div>
     <p class="muted" style="margin:0 0 12px">${played} de ${MATCHES.length} partidos con resultado. Toca un jugador para ver su detalle.</p>${body}`;
@@ -905,7 +914,7 @@ function gate(){
       <h1 class="gate-title">Administrador</h1>
       <p class="gate-sub">${has?"Escribe tu PIN para entrar.":"Crea tu PIN de administrador (solo tú lo tendrás)."}</p>
       <label class="gate-label">PIN</label>
-      <input class="gate-input" id="pinInput" type="password" placeholder="••••" onkeydown="if(event.key==='Enter')orgLogin()">
+      <input class="gate-input" id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••" onkeydown="if(event.key==='Enter')orgLogin()">
       ${state.loginError?`<div class="gate-err">${state.loginError}</div>`:""}
       <button class="gate-btn" onclick="orgLogin()">${has?"Entrar":"Crear PIN"}</button>
       <a class="gate-admin" onclick="backToList()">← Volver</a>`;
