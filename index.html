@@ -52,6 +52,10 @@
   .row-between{display:flex;align-items:center;justify-content:space-between;}
   .mb{margin-bottom:12px;}
   .savestate{font-size:12px;font-weight:700;color:var(--sub);white-space:nowrap;}
+  .seg{display:flex;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:12px;}
+  .seg button{flex:1;padding:11px 8px;border:none;border-radius:10px;background:transparent;color:var(--sub);font-weight:800;font-size:15px;cursor:pointer;transition:all .15s;}
+  .seg button.on{background:var(--pitch);color:#fff;}
+  .seg.sub button.on{background:var(--grass);color:#fff;}
   .select{width:100%;padding:12px 14px;border-radius:11px;border:1px solid var(--line);
     font-size:15px;font-weight:700;color:var(--ink);background:var(--card);}
   .nameinput{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--line);
@@ -324,7 +328,7 @@ const state = {
   configured:true, error:null,
   participants:[], results:{}, config:null, bracket:{...R32_BRACKET},
   user:null, myPicks:{}, allPicks:{}, rankLoading:false,
-  tab:"picks", phase:"J2", saveState:"idle",
+  tab:"picks", phase:"J2", stage:"grupos", grpSub:"marcadores", saveState:"idle",
   pendingId:null, gateOrg:false, loginError:"",
   lastAdded:null, ccMsg:"", ccError:"", gateSel:"", schedule:{}, rankOpen:null
 };
@@ -543,6 +547,8 @@ function setSchedule(mid,value){
 }
 function openRank(id){ state.rankOpen = state.rankOpen===id?null:id; render(); }
 function setTab(t){state.tab=t; state.ccMsg=""; state.ccError=""; state.rankOpen=null; if(t==="ranking") refreshRanking(); else render();}
+function setStage(s){state.stage=s; if(s==="grupos"){if(state.phase!=="J2"&&state.phase!=="J3")state.phase="J2";}else{if(state.phase==="J2"||state.phase==="J3")state.phase="R32";} render();}
+function setGrpSub(s){state.grpSub=s; render();}
 function setPhase(p){state.phase=p; render();}
 async function refreshRanking(){
   state.rankLoading=true; render();
@@ -703,19 +709,50 @@ function phaseSelect(){
     ${PHASES.map(p=>`<option value="${p}" ${state.phase===p?"selected":""}>${PHASE_LABEL[p]}</option>`).join("")}
   </select>`;
 }
-function viewPicks(){
-  const ms=sortByTime(MATCHES.filter(m=>m.phase===state.phase));
-  const dl=phaseDeadline(state.phase), unlocked=userUnlocked(state.phase), closed=phaseClosed(state.phase)&&!unlocked;
+function stageBar(){
+  const g=state.stage==="grupos"?"on":"", e=state.stage==="eliminatoria"?"on":"";
+  return `<div class="seg"><button class="${g}" onclick="setStage('grupos')">Fase de grupos</button><button class="${e}" onclick="setStage('eliminatoria')">Eliminatoria</button></div>`;
+}
+function grpSubBar(){
+  const m=state.grpSub==="marcadores"?"on":"", t=state.grpSub==="tablas"?"on":"";
+  return `<div class="seg sub"><button class="${m}" onclick="setGrpSub('marcadores')">Marcadores</button><button class="${t}" onclick="setGrpSub('tablas')">Tablas</button></div>`;
+}
+function koPhaseSelect(){
+  const kos=PHASES.filter(p=>p!=="J2"&&p!=="J3");
+  return `<select class="select" onchange="setPhase(this.value)">
+    ${kos.map(p=>`<option value="${p}" ${state.phase===p?"selected":""}>${PHASE_LABEL[p]}</option>`).join("")}
+  </select>`;
+}
+function phaseMatchesView(phase){
+  const ms=sortByTime(MATCHES.filter(m=>m.phase===phase));
+  const dl=phaseDeadline(phase), unlocked=userUnlocked(phase), closed=phaseClosed(phase)&&!unlocked;
   let banner="";
   if(unlocked){const g=activeGrant(state.user.id);
-    banner=`<div class="note" style="background:#E9F6EE;border-color:#A9D9BC;color:#1B5E34;margin-bottom:12px">🔓 Acceso especial activo para <b>${PHASE_LABEL[state.phase]}</b> hasta las <b>${new Date(g.until).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b>. Guarda antes de que termine.</div>`;}
-  else if(closed) banner=`<div class="note" style="background:#FCEAE6;border-color:#E7B3A7;color:#8A2C16;margin-bottom:12px">⏰ Los pronósticos de <b>${PHASE_LABEL[state.phase]}</b> están cerrados. Ya no puedes editar.</div>`;
+    banner=`<div class="note" style="background:#E9F6EE;border-color:#A9D9BC;color:#1B5E34;margin-bottom:12px">🔓 Acceso especial activo para <b>${PHASE_LABEL[phase]}</b> hasta las <b>${new Date(g.until).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b>. Guarda antes de que termine.</div>`;}
+  else if(closed) banner=`<div class="note" style="background:#FCEAE6;border-color:#E7B3A7;color:#8A2C16;margin-bottom:12px">⏰ Los pronósticos de <b>${PHASE_LABEL[phase]}</b> están cerrados. Ya no puedes editar.</div>`;
   else if(dl) banner=`<div class="note" style="margin-bottom:12px">⏰ Cierra el <b>${new Date(dl).toLocaleString()}</b>. Después no podrás editar.</div>`;
-  return `<div class="row-between mb" style="gap:10px">
-    <div style="flex:1">${phaseSelect()}</div>
-    <span id="saveState" class="savestate"></span></div>
-    ${banner}
-    <div class="stack">${ms.map(m=>matchCard(m,"pick")).join("")}</div>`;
+  return `${banner}<div class="stack">${ms.map(m=>matchCard(m,"pick")).join("")}</div>`;
+}
+function viewPicks(){
+  const saveSt=`<span id="saveState" class="savestate"></span>`;
+  if(state.stage==="grupos"){
+    // Fase de grupos: sub-tabs Marcadores/Tablas
+    if(state.grpSub==="tablas"){
+      return `${stageBar()}${grpSubBar()}${viewTablasInner()}`;
+    }
+    // Marcadores de grupos: si la fase actual no es J2/J3, forzar J2
+    let ph=state.phase;
+    if(ph!=="J2"&&ph!=="J3") ph="J2";
+    // sub-selector J2/J3
+    const jsel=`<select class="select" onchange="setPhase(this.value)" style="margin-bottom:12px">
+      <option value="J2" ${ph==="J2"?"selected":""}>${PHASE_LABEL["J2"]}</option>
+      <option value="J3" ${ph==="J3"?"selected":""}>${PHASE_LABEL["J3"]}</option></select>`;
+    return `${stageBar()}${grpSubBar()}<div class="row-between mb">${jsel}${saveSt}</div>${phaseMatchesView(ph)}`;
+  }
+  // Eliminatoria
+  let ph=state.phase;
+  if(ph==="J2"||ph==="J3") ph="R32";
+  return `${stageBar()}<div class="row-between mb" style="gap:10px"><div style="flex:1">${koPhaseSelect()}</div>${saveSt}</div>${phaseMatchesView(ph)}`;
 }
 function rankRow(p,i,leaderPts){
   const leader=i===0, silver=i===1, bronze=i===2, open=state.rankOpen===p.id;
@@ -770,12 +807,10 @@ function rankRow(p,i,leaderPts){
   }
   const medal=leader?"🥇":(silver?"🥈":(bronze?"🥉":i+1));
   const rowCls=leader?"leader":(silver?"silver":(bronze?"bronze":""));
-  const diff=(!leader&&leaderPts!=null)?(leaderPts-p.pts):0;
-  const diffTxt=(!leader&&diff>0)?`<div class="rank-diff">−${diff} del líder</div>`:"";
   return `<div><div class="rank-row ${rowCls} ${isMe?"me":""}" style="cursor:pointer" onclick="openRank('${p.id}')"><div class="rank-left">
       <span class="rank-pos" style="${leader?"color:var(--ink)":""};font-size:${(leader||silver||bronze)?"20px":"16px"}">${medal}</span>
       <div style="min-width:0"><div class="rank-name">${esc(p.name)}${isMe?" (tú)":""}</div>
-      <div class="rank-sub" style="${leader?"color:var(--goldDeep)":""}">${p.ex} exactos · toca para ver</div>${diffTxt}</div></div>
+      <div class="rank-sub" style="${leader?"color:var(--goldDeep)":""}">${p.ex} exactos · toca para ver</div></div></div>
       <div class="rank-pts">${p.pts}</div></div>${detail}</div>`;
 }
 function viewRanking(){
@@ -905,7 +940,7 @@ function nav(){
   const b=(t,ic,lb)=>`<button class="navbtn ${state.tab===t?"on":""}" onclick="setTab('${t}')"><span class="ic">${ic}</span><span class="lb">${lb}</span></button>`;
   if(state.user&&state.user.org)
     return `<div class="nav">${b("players","👥","Jugadores")}${b("results","📋","Resultados")}${b("tablas","📊","Tablas")}${b("ranking","🏆","Ranking")}${b("rules","ℹ️","Reglas")}</div>`;
-  return `<div class="nav">${b("picks","⚽","Pronósticos")}${b("tablas","📊","Tablas")}${b("ranking","🏆","Ranking")}${b("rules","ℹ️","Reglas")}</div>`;
+  return `<div class="nav">${b("picks","⚽","Pronósticos")}${b("ranking","🏆","Ranking")}${b("rules","ℹ️","Reglas")}</div>`;
 }
 function gate(){
   let inner;
@@ -915,7 +950,7 @@ function gate(){
       <h1 class="gate-title">Administrador</h1>
       <p class="gate-sub">${has?"Escribe tu PIN para entrar.":"Crea tu PIN de administrador (solo tú lo tendrás)."}</p>
       <label class="gate-label">PIN</label>
-      <input class="gate-input pin-hidden" id="pinInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off" placeholder="••••" onkeydown="if(event.key==='Enter')orgLogin()">
+      <input class="gate-input" id="pinInput" type="password" autocomplete="off" placeholder="••••" onkeydown="if(event.key==='Enter')orgLogin()">
       ${state.loginError?`<div class="gate-err">${state.loginError}</div>`:""}
       <button class="gate-btn" onclick="orgLogin()">${has?"Entrar":"Crear PIN"}</button>
       <a class="gate-admin" onclick="backToList()">← Volver</a>`;
@@ -987,7 +1022,7 @@ function tableScore(pred, real){
   if(anyMatch) return 3;
   return 1; // participó pero no acertó nada
 }
-function viewTablas(){
+function viewTablasInner(withTitle){
   const groups=Object.keys(GROUPS).sort();
   const realMatches=MATCHES.filter(m=>m.kind==="group");
   const picks=state.myPicks||{};
@@ -1058,11 +1093,13 @@ function viewTablas(){
     </div>`;
   }).join("");
 
-  return `<h2 class="title">Tablas de grupo</h2>
+  const title=withTitle?`<h2 class="title">Tablas de grupo</h2>`:"";
+  return `${title}
     <p class="muted" style="margin:0 0 14px">Los ✓ indican posiciones que acertaste. La línea separa clasificados de eliminados.</p>
     ${totalScore>0?`<div class="note" style="background:#E9F6EE;border-color:#A9D9BC;color:#1B5E34;margin-bottom:14px">🎯 Posiciones acertadas: <b>${totalScore}</b> pts</div>`:""}
     ${cards}`;
 }
+function viewTablas(){ return viewTablasInner(true); }
 
 /* ===== render ===== */
 function render(){
@@ -1102,7 +1139,7 @@ function render(){
 
 window.bumpFn=(fn,mid,side,delta)=>{ (fn==="bumpResult"?bumpResult:bumpPick)(mid,side,delta); };
 window.setPenPick=setPenPick; window.setPenResult=setPenResult;
-window.setTab=setTab; window.setPhase=setPhase; window.setBracket=setBracket;
+window.setTab=setTab; window.setPhase=setPhase; window.setBracket=setBracket; window.setStage=setStage; window.setGrpSub=setGrpSub;
 window.setSchedule=setSchedule; window.openRank=openRank;
 window.setDeadline=setDeadline; window.clearDeadline=clearDeadline; window.clearResult=clearResult; window.grantEdit=grantEdit; window.revokeGrant=revokeGrant;
 
