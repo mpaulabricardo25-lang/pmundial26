@@ -77,6 +77,7 @@
   .rank-row.bronze{background:#F9F0E8;border-color:#E0C4A8;}
   .rank-row.me{border:2px solid var(--pitch);box-shadow:0 0 0 3px rgba(11,77,52,.10);}
   .rank-diff{font-size:11px;font-weight:700;color:var(--sub);margin-top:2px;}
+  .pin-hidden{-webkit-text-security:disc;text-security:disc;}
   .rank-left{display:flex;align-items:center;gap:12px;min-width:0;}
   .rank-pos{font-weight:800;font-size:16px;width:24px;color:var(--sub);}
   .rank-name{font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -914,7 +915,7 @@ function gate(){
       <h1 class="gate-title">Administrador</h1>
       <p class="gate-sub">${has?"Escribe tu PIN para entrar.":"Crea tu PIN de administrador (solo tú lo tendrás)."}</p>
       <label class="gate-label">PIN</label>
-      <input class="gate-input" id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••" onkeydown="if(event.key==='Enter')orgLogin()">
+      <input class="gate-input pin-hidden" id="pinInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off" placeholder="••••" onkeydown="if(event.key==='Enter')orgLogin()">
       ${state.loginError?`<div class="gate-err">${state.loginError}</div>`:""}
       <button class="gate-btn" onclick="orgLogin()">${has?"Entrar":"Crear PIN"}</button>
       <a class="gate-admin" onclick="backToList()">← Volver</a>`;
