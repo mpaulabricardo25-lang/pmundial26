@@ -257,6 +257,20 @@ R32.forEach(([h,a,ts],i)=>{
 });
 const R32_BRACKET={};
 R32.forEach(([h,a],i)=>{ R32_BRACKET[`ko-R32-${i+1}`]={h,a}; });
+/* R16 (Octavos): equipos definidos + fechas. Los TBD se dejan vacíos hasta que se jueguen los dieciseisavos pendientes. */
+const R16 = [
+  ["Brasil","Noruega",D(35,15,0)],
+  ["México","Inglaterra",D(35,19,0)],
+  ["Portugal","España",D(36,14,0)],
+  ["USA","Bélgica",D(36,19,0)],
+  ["","",D(37,11,0)],
+  ["Suiza","",D(37,15,0)],
+];
+R16.forEach(([h,a,ts],i)=>{
+  const id=`ko-R16-${i+1}`;
+  DEFAULT_SCHEDULE[id]=ts;
+  if(h||a) R32_BRACKET[id]={h,a};
+});
 [["R32",16],["R16",8],["QF",4],["SF",2],["TP",1],["FIN",1]].forEach(([key,n])=>{
   for(let i=1;i<=n;i++) MATCHES.push({id:`ko-${key}-${i}`,phase:key,kind:"ko",num:i});
 });
