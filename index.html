@@ -821,10 +821,12 @@ function rankRow(p,i,leaderPts){
   }
   const medal=leader?"🥇":(silver?"🥈":(bronze?"🥉":i+1));
   const rowCls=leader?"leader":(silver?"silver":(bronze?"bronze":""));
+  const diff=(leaderPts!=null)?(leaderPts-p.pts):0;
+  const diffTxt=(isMe&&!leader&&diff>0)?` · <span style="color:var(--goldDeep);font-weight:700">a ${diff} del líder</span>`:(isMe&&leader?` · <span style="color:var(--goldDeep);font-weight:700">¡vas de líder! 🎉</span>`:"");
   return `<div><div class="rank-row ${rowCls} ${isMe?"me":""}" style="cursor:pointer" onclick="openRank('${p.id}')"><div class="rank-left">
       <span class="rank-pos" style="${leader?"color:var(--ink)":""};font-size:${(leader||silver||bronze)?"20px":"16px"}">${medal}</span>
       <div style="min-width:0"><div class="rank-name">${esc(p.name)}${isMe?" (tú)":""}</div>
-      <div class="rank-sub" style="${leader?"color:var(--goldDeep)":""}">${p.ex} exactos · toca para ver</div></div></div>
+      <div class="rank-sub" style="${leader?"color:var(--goldDeep)":""}">${p.ex} exactos · toca para ver${diffTxt}</div></div></div>
       <div class="rank-pts">${p.pts}</div></div>${detail}</div>`;
 }
 function viewRanking(){
