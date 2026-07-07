@@ -276,6 +276,75 @@ R16.forEach(([h,a,ts],i)=>{
 });
 const MATCH_BY_ID={}; MATCHES.forEach(m=>{MATCH_BY_ID[m.id]=m;});
 
+/* Fechas por defecto de rondas finales */
+DEFAULT_SCHEDULE["ko-QF-1"]=D(39,15,0); // Jue 9 jul
+DEFAULT_SCHEDULE["ko-QF-2"]=D(40,14,0); // Vie 10 jul
+DEFAULT_SCHEDULE["ko-QF-3"]=D(41,16,0); // Sáb 11 jul
+DEFAULT_SCHEDULE["ko-QF-4"]=D(41,20,0); // Sáb 11 jul
+DEFAULT_SCHEDULE["ko-SF-1"]=D(44,14,0); // Mar 14 jul
+DEFAULT_SCHEDULE["ko-SF-2"]=D(45,14,0); // Mié 15 jul
+DEFAULT_SCHEDULE["ko-TP-1"]=D(48,14,0); // Sáb 18 jul (tercer puesto)
+DEFAULT_SCHEDULE["ko-FIN-1"]=D(49,14,0); // Dom 19 jul
+
+/* Árbol de avance: cada slot de destino recibe el ganador de un partido origen.
+   Formato: destino: { h:"id-origen-para-local", a:"id-origen-para-visitante" }
+   Basado en el bracket oficial de la polla. */
+const ADVANCE_TREE = {
+  // Cuartos (según el orden real de octavos en la app)
+  "ko-QF-1":{h:"ko-R16-2",a:"ko-R16-1"}, // Francia(gana R16-2) vs Marruecos(gana R16-1)
+  "ko-QF-2":{h:"ko-R16-5",a:"ko-R16-6"}, // España vs Bélgica
+  "ko-QF-3":{h:"ko-R16-3",a:"ko-R16-4"}, // Noruega vs Inglaterra
+  "ko-QF-4":{h:"ko-R16-8",a:"ko-R16-7"}, // gana R16-8 vs gana R16-7
+  // Semifinales
+  "ko-SF-1":{h:"ko-QF-1",a:"ko-QF-2"},
+  "ko-SF-2":{h:"ko-QF-3",a:"ko-QF-4"},
+  // Final y tercer puesto
+  "ko-FIN-1":{h:"ko-SF-1",a:"ko-SF-2"},
+  "ko-TP-1":{h:"ko-SF-1",a:"ko-SF-2"} // perdedores (se maneja aparte)
+};
+
+/* Ganador de un partido según su resultado (marcador; si empate, por penales). Devuelve nombre del equipo o null. */
+function winnerOf(mid){
+  const r=state.results[mid]; if(!r||r.h==null||r.a==null) return null;
+  const hn=koName(mid,"h"), an=koName(mid,"a");
+  if(!hn||!an) return null;
+  if(r.h>r.a) return hn;
+  if(r.a>r.h) return an;
+  // empate: usar quién pasa por penales
+  if(r.pen===hn||r.pen===an) return r.pen;
+  return null;
+}
+/* Perdedor (para tercer puesto) */
+function loserOf(mid){
+  const r=state.results[mid]; if(!r||r.h==null||r.a==null) return null;
+  const hn=koName(mid,"h"), an=koName(mid,"a");
+  if(!hn||!an) return null;
+  const w=winnerOf(mid); if(!w) return null;
+  return w===hn?an:hn;
+}
+/* Recalcula el bracket propagando ganadores. Solo escribe si hay cambios. */
+function computeAdvances(){
+  let changed=false;
+  const nb={...state.bracket};
+  Object.keys(ADVANCE_TREE).forEach(dest=>{
+    if(dest==="ko-TP-1") return; // tercer puesto se maneja abajo
+    const src=ADVANCE_TREE[dest];
+    const wh=winnerOf(src.h), wa=winnerOf(src.a);
+    const cur=nb[dest]||{h:"",a:""};
+    const newH=wh||cur.h||"", newA=wa||cur.a||"";
+    if((cur.h||"")!==newH || (cur.a||"")!==newA){
+      nb[dest]={h:newH,a:newA}; changed=true;
+    }
+  });
+  // Tercer puesto: perdedores de las semis
+  const lh=loserOf("ko-SF-1"), la=loserOf("ko-SF-2");
+  const curTP=nb["ko-TP-1"]||{h:"",a:""};
+  const tpH=lh||curTP.h||"", tpA=la||curTP.a||"";
+  if((curTP.h||"")!==tpH || (curTP.a||"")!==tpA){ nb["ko-TP-1"]={h:tpH,a:tpA}; changed=true; }
+  if(changed){ state.bracket=nb; if(state.user&&state.user.org){ try{ set(rBracket(),state.bracket); }catch(e){} } }
+  return changed;
+}
+
 function scoreDetail(pick,res,phase,m){
   if(!pick||pick.h==null||pick.a==null) return null;
   if(!res||res.h==null||res.a==null) return null;
@@ -380,9 +449,9 @@ function subscribe(){
       state.participants=list; maybeBootUser(); render();
     }
   },err=>{state.error=err.message;render();});
-  onValue(rResults(),s=>{const map=s.val()||{}; if(JSON.stringify(map)!==JSON.stringify(state.results)){state.results=map;render();}});
+  onValue(rResults(),s=>{const map=s.val()||{}; if(JSON.stringify(map)!==JSON.stringify(state.results)){state.results=map;computeAdvances();render();}});
   onValue(rConfig(),s=>{const c=s.val()||null; if(JSON.stringify(c)!==JSON.stringify(state.config)){state.config=c;render();}});
-  onValue(rBracket(),s=>{const b={...R32_BRACKET,...(s.val()||{})}; if(JSON.stringify(b)!==JSON.stringify(state.bracket)){state.bracket=b;render();}});
+  onValue(rBracket(),s=>{const b={...R32_BRACKET,...(s.val()||{})}; if(JSON.stringify(b)!==JSON.stringify(state.bracket)){state.bracket=b;computeAdvances();render();}});
   onValue(rSchedule(),s=>{const sc=s.val()||{}; if(JSON.stringify(sc)!==JSON.stringify(state.schedule)){state.schedule=sc;render();}});
   render();
 }
@@ -509,17 +578,19 @@ function bumpResult(mid,side,delta){
   const isKO=_m&&_m.kind==="ko";
   const wasDrawn=prevCell.h!=null&&prevCell.a!=null&&prevCell.h===prevCell.a;
   const isDrawn=cell.h===cell.a;
-  if(isKO&&(wasDrawn!==isDrawn)){clearTimeout(resTimer);resTimer=setTimeout(async()=>{try{await set(rResults(),state.results);}catch(e){}},400);render();return;}
+  if(isKO&&(wasDrawn!==isDrawn)){clearTimeout(resTimer);resTimer=setTimeout(async()=>{try{await set(rResults(),state.results);}catch(e){}},400);computeAdvances();render();return;}
   const ph=el(`rplate-${mid}-h`),pa=el(`rplate-${mid}-a`);
   if(ph)ph.textContent=cell.h; if(pa)pa.textContent=cell.a;
   clearTimeout(resTimer);
   resTimer=setTimeout(async()=>{try{await set(rResults(),state.results);}catch(e){}},400);
+  if(isKO) computeAdvances();
 }
 async function clearResult(mid){
   if(!confirm("¿Borrar el resultado de este partido? Volverá a quedar en blanco.")) return;
   const next={...state.results}; delete next[mid];
   state.results=next;
   try{await set(rResults(),next);}catch(e){}
+  computeAdvances();
   render();
 }
 let brTimer=null;
@@ -549,6 +620,7 @@ function setPenResult(mid,team){
   state.results[mid]=cell;
   clearTimeout(resTimer);
   resTimer=setTimeout(async()=>{try{await set(rResults(),state.results);}catch(e){}},400);
+  computeAdvances();
   render();
 }
 let schTimer=null;
