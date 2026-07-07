@@ -351,9 +351,14 @@ function scoreDetail(pick,res,phase,m){
   const ph=pick.h,pa=pick.a,rh=res.h,ra=res.a;
   const exact=(ph===rh&&pa===ra), reversed=(ph===ra&&pa===rh&&ph!==pa);
   const ps=Math.sign(ph-pa),rs=Math.sign(rh-ra), same=ps===rs;
-  const isGroup=(phase==="J2"||phase==="J3"), isFinal=(phase==="FIN");
+  const isGroup=(phase==="J2"||phase==="J3");
   const isKO=!isGroup;
   if(isKO){
+    // Escala progresiva por fase: [exacto, invertido, ganador]
+    let SC;
+    if(phase==="FIN") SC=[10,8,6];          // Final
+    else if(phase==="QF"||phase==="SF") SC=[8,6,5]; // Cuartos y Semis (TP usa normal)
+    else SC=[7,5,4];                         // R32, R16, TP
     // Nombres de los equipos para convertir el pen (nombre) al lado ganador
     const hName = m ? (m.kind==="group"?m.home[0]:(koName(m.id,"h")||null)) : null;
     const aName = m ? (m.kind==="group"?m.away[0]:(koName(m.id,"a")||null)) : null;
@@ -361,10 +366,10 @@ function scoreDetail(pick,res,phase,m){
     let pickAdv = ph>pa ? "h" : (pa>ph ? "a" : (pick.pen===hName?"h":(pick.pen===aName?"a":null)));
     let resAdv  = rh>ra ? "h" : (ra>rh ? "a" : (res.pen===hName?"h":(res.pen===aName?"a":null)));
     const advOk = pickAdv!=null && resAdv!=null && pickAdv===resAdv;
-    if(exact && advOk) return {pts:isFinal?10:7,label:"Exacto"};
-    if(exact && !advOk) return {pts:isFinal?8:5,label:"Invertido"};
-    if(!exact && reversed) return {pts:isFinal?8:5,label:"Invertido"};
-    if(advOk) return {pts:isFinal?6:4,label:"Ganador"};
+    if(exact && advOk) return {pts:SC[0],label:"Exacto"};
+    if(exact && !advOk) return {pts:SC[1],label:"Invertido"};
+    if(!exact && reversed) return {pts:SC[1],label:"Invertido"};
+    if(advOk) return {pts:SC[2],label:"Ganador"};
     return {pts:1,label:"Falló"};
   }
   if(exact) return {pts:7,label:"Exacto"};
@@ -994,19 +999,26 @@ function viewRules(){
       ${r(1,"Falló","Pronosticaste pero no acertaste.")}
       ${r(0,"Vacío","No pusiste marcador, o quedó incompleto.")}
     </div>
-    <div class="minilabel" style="margin:18px 0 8px">ELIMINATORIAS (cuenta el tiempo extra)</div>
+    <div class="minilabel" style="margin:18px 0 8px">DIECISEISAVOS, OCTAVOS Y 3ER PUESTO (cuenta el tiempo extra)</div>
     <div class="rulebox">
       ${r(7,"Marcador y ganador","Marcador exacto y el que avanza, correctos.",true)}
       ${r(5,"Marcador, ganador al revés","Goles correctos pero gana el otro.")}
       ${r(4,"Solo el ganador","Aciertas quién avanza, no el marcador.")}
       ${r(1,"Falló","Nada correcto.")}
     </div>
-    <div class="minilabel" style="margin:18px 0 8px">FINAL</div>
+    <div class="minilabel" style="margin:18px 0 8px">CUARTOS Y SEMIFINALES (valen más 🔥)</div>
     <div class="rulebox">
-      ${r(10,"Marcador y campeón","Igual que eliminatorias, pero vale más.",true)}
-      ${r(8,"Marcador, campeón al revés","")}
-      ${r(6,"Solo el campeón","")}
-      ${r(1,"Falló","")}
+      ${r(8,"Marcador y ganador","Marcador exacto y el que avanza, correctos.",true)}
+      ${r(6,"Marcador, ganador al revés","Goles correctos pero gana el otro.")}
+      ${r(5,"Solo el ganador","Aciertas quién avanza, no el marcador.")}
+      ${r(1,"Falló","Nada correcto.")}
+    </div>
+    <div class="minilabel" style="margin:18px 0 8px">FINAL (lo que más vale ⭐)</div>
+    <div class="rulebox">
+      ${r(10,"Marcador y campeón","Marcador exacto y el campeón, correctos.",true)}
+      ${r(8,"Marcador, campeón al revés","Goles correctos pero gana el otro.")}
+      ${r(6,"Solo el campeón","Aciertas quién es campeón, no el marcador.")}
+      ${r(1,"Falló","Nada correcto.")}
     </div>
     <div class="minilabel" style="margin:18px 0 8px">TABLAS DE GRUPO</div>
     <div class="rulebox">
